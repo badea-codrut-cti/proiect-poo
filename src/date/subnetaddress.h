@@ -1,7 +1,7 @@
 #include "./ipv4.h"
 
-#ifndef SUBNETADDRESS_H
-#define SUBNETADDRESS_H
+#ifndef SUBNETADDR_H
+#define SUBNETADDR_H
 
 class SubnetAddress : public IPv4Address {
     private:
@@ -18,15 +18,17 @@ class SubnetAddress : public IPv4Address {
 
         SubnetAddress();
 
-        std::string toString() const;
+        [[nodiscard]] std::string toString() const;
 
-        IPv4Address getNetworkAddress() const;
+        [[nodiscard]] IPv4Address getNetworkAddress() const;
 
-        IPv4Address getBroadcastAddress() const;
+        [[nodiscard]] IPv4Address getBroadcastAddress() const;
 
-        bool isMulticastAddress() const;
+        [[nodiscard]] bool isMulticastAddress() const;
 
-        bool isInSameSubnet(SubnetAddress) const;
+        [[nodiscard]] bool isInSameSubnet(SubnetAddress) const;
+
+        SubnetAddress& operator=(const SubnetAddress&);
 
         friend std::ostream& operator<<(std::ostream&, const SubnetAddress&);
 };

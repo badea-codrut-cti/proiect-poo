@@ -91,6 +91,12 @@ std::string SubnetAddress::toString() const {
     return IPv4Address::toString() + "/" + std::to_string(subnetMask);
 }
 
+SubnetAddress& SubnetAddress::operator=(const SubnetAddress& other) {
+    octets = other.octets;
+    subnetMask = other.subnetMask;
+    return *this;
+}
+
 std::ostream& operator<<(std::ostream& os, const SubnetAddress& add) {
     os << add.toString();
     return os;

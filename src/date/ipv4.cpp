@@ -1,4 +1,5 @@
 #include <array>
+#include <cstdint>
 #include <string>
 #include <sstream>
 #include <stdexcept>
@@ -8,9 +9,9 @@
 void IPv4Address::stringToOctets(const std::string& str) {
     std::istringstream iss(str);
     std::string token;
-    std::array<uint8_t, 4> newOctets = {0};
+    std::array<uint8_t, IPV4_SIZE> newOctets = {0};
 
-    for (size_t i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < IPV4_SIZE; ++i) {
         if (!getline(iss, token, '.')) {
             throw std::invalid_argument("Format de adresa IP invalid.");
         }
@@ -24,7 +25,7 @@ void IPv4Address::stringToOctets(const std::string& str) {
     octets = newOctets;
 }
 
-std::array<uint8_t, 4> IPv4Address::getOctets() const {
+std::array<uint8_t, IPV4_SIZE> IPv4Address::getOctets() const {
     return octets;
 }
 
@@ -34,7 +35,7 @@ IPv4Address::IPv4Address(const IPv4Address& other) : octets(other.octets) {}
 
 IPv4Address::IPv4Address(const std::array<uint8_t, 4>& octets) : octets(octets) {}
 
-IPv4Address::IPv4Address(const std::string& str) {
+IPv4Address::IPv4Address(const std::string& str): octets() {
     stringToOctets(str);
 }
 
@@ -61,12 +62,16 @@ bool IPv4Address::operator==(const IPv4Address& other) const {
 
 bool IPv4Address::operator==(const std::string& str) const {
     IPv4Address other;
-    try {
-        other = str;
-    } catch (...) {
-        return false; 
-    }
+    other = str;
     return octets == other.octets;
+}
+
+bool IPv4Address::operator<(const IPv4Address& other) const {
+    for (uint8_t i = 0; i < IPV4_SIZE - 1; i++)
+        if (octets[i] > other.octets[i])
+            return false;
+
+    return octets[IPV4_SIZE - 1] < other.octets[IPV4_SIZE - 1];
 }
 
 std::ostream& operator<<(std::ostream& os, const IPv4Address& ip) {

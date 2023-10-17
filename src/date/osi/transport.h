@@ -9,9 +9,9 @@ class TransportLayer: public NetworkLayer {
 
         TransportLayer(const TransportLayer&);
 
-        uint16_t getSourcePort() const;
+        [[nodiscard]] uint16_t getSourcePort() const;
 
-        uint16_t getDestinationPort() const;
+        [[nodiscard]] uint16_t getDestinationPort() const;
 
         friend std::ostream& operator<<(std::ostream&, const TransportLayer&);
 };
