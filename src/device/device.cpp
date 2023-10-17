@@ -31,7 +31,7 @@ bool Device::getState() const {
     return isOn;
 }
 
-bool Device::interfaceCallback(DataLinkLayer& _data, uint8_t index) {
+bool Device::interfaceCallback([[maybe_unused]]DataLinkLayer& _data, [[maybe_unused]]uint8_t index) {
     return true;
 }
 
