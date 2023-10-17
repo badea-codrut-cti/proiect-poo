@@ -11,9 +11,11 @@ class NetworkLayer: public DataLinkLayer {
 
         NetworkLayer(const NetworkLayer&);
 
-        IPv4Address getIPSource() const;
+        [[nodiscard]] IPv4Address getIPSource() const;
 
-        IPv4Address getIPDestination() const;
+        [[nodiscard]] IPv4Address getIPDestination() const;
+
+        [[nodiscard]] unsigned long getTTL() const;
 
         friend std::ostream& operator<<(std::ostream&, const NetworkLayer&);
 };

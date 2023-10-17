@@ -8,7 +8,7 @@ DataLinkLayer(layer), source(_source), destination(_destination), TTL(_ttl) {
 }
 
 NetworkLayer::NetworkLayer(const NetworkLayer& layer): 
-DataLinkLayer(layer), source(layer.source), destination(layer.destination), TTL(0) {
+DataLinkLayer(layer), source(layer.source), destination(layer.destination), TTL(layer.getTTL()) {
 
 }
 
@@ -18,6 +18,10 @@ IPv4Address NetworkLayer::getIPSource() const {
 
 IPv4Address NetworkLayer::getIPDestination() const {
     return destination;
+}
+
+unsigned long NetworkLayer::getTTL() const {
+    return TTL;
 }
 
 std::ostream& operator<<(std::ostream& os, const NetworkLayer& other) {

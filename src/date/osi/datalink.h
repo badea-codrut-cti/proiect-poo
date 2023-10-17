@@ -3,12 +3,7 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
-class PhysicalLayer {
-    public:
-        virtual ~PhysicalLayer() {}
-};
-
-class DataLinkLayer: public PhysicalLayer {
+class DataLinkLayer {
     private:
         MACAddress source, destination;
 
@@ -17,9 +12,11 @@ class DataLinkLayer: public PhysicalLayer {
 
         DataLinkLayer(const DataLinkLayer&);
 
-        MACAddress getMACSource() const;
+        virtual ~DataLinkLayer() = default;
 
-        MACAddress getMACDestination() const;
+        [[nodiscard]] MACAddress getMACSource() const;
+
+        [[nodiscard]] MACAddress getMACDestination() const;
 
         friend std::ostream& operator<<(std::ostream&, const DataLinkLayer&);
 };
