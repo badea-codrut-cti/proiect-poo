@@ -4,6 +4,8 @@
 #ifndef MACADDRESS_H
 #define MACADDRESS_H
 
+const uint8_t MACADDRESS_SIZE = 6;
+
 class MACAddress {
     private:
         std::array<uint8_t, 6> octets; 
@@ -11,31 +13,33 @@ class MACAddress {
         void stringToOctets(const std::string& str);
 
     public:
-        static const std::array<uint8_t, 6> broadcastAddress;
+        static const std::array<uint8_t, MACADDRESS_SIZE> broadcastAddress;
 
         MACAddress();
 
         MACAddress(const MACAddress&);
 
-	    MACAddress(const std::array<uint8_t, 6>&);
+	    MACAddress(const std::array<uint8_t, MACADDRESS_SIZE>&);
 
         MACAddress(const std::string&);
 
-        std::string toString() const;
+        [[nodiscard]] std::string toString() const;
 
-        bool isMulticast() const;
+        [[nodiscard]] bool isMulticast() const;
 
-        MACAddress& operator+=(int);
+        MACAddress& operator+=(long);
 
-        MACAddress& operator-=(int);
+        MACAddress& operator-=(long);
 
-        MACAddress operator+(int) const;
+        MACAddress operator+(long) const;
 
-        MACAddress operator-(int) const;
+        MACAddress operator-(long) const;
 
 	    MACAddress& operator=(const std::string&);
 
-        MACAddress& operator=(const std::array<uint8_t, 6>&);
+        MACAddress& operator=(const std::array<uint8_t, MACADDRESS_SIZE>&);
+
+        MACAddress& operator=(const MACAddress&);
 
         bool operator<(const MACAddress&) const;
 
@@ -47,3 +51,4 @@ class MACAddress {
 };
 
 #endif
+

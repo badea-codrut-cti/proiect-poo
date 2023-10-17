@@ -1,4 +1,3 @@
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -9,9 +8,9 @@
 void MACAddress::stringToOctets(const std::string& str) {
     std::istringstream iss(str);
 	std::string token;
-	std::array<uint8_t, 6> newOctets = {0};
+	std::array<uint8_t, MACADDRESS_SIZE> newOctets{};
 
-	for (size_t i = 0; i < 6; ++i) {
+	for (size_t i = 0; i < MACADDRESS_SIZE; ++i) {
 		if (!getline(iss, token, ':')) {
 			throw std::invalid_argument("Format de adresa MAC invalid.");
 		}
@@ -30,9 +29,9 @@ MACAddress::MACAddress(): octets(broadcastAddress) {}
 
 MACAddress::MACAddress(const MACAddress& other) : octets(other.octets) {}
 
-MACAddress::MACAddress(const std::array<uint8_t, 6>& octets) : octets(octets) {}
+MACAddress::MACAddress(const std::array<uint8_t, MACADDRESS_SIZE>& octets) : octets(octets) {}
 
-MACAddress::MACAddress(const std::string& str) {
+MACAddress::MACAddress(const std::string& str): octets() {
     stringToOctets(str);
 }
 
@@ -52,16 +51,25 @@ bool MACAddress::isMulticast() const {
     return (octets[0] & 0x01) == 1;
 }
 
-MACAddress& MACAddress::operator+=(int increment) {
-    for (int i = octets.size() - 1; i >= 0; --i) {
-        int sum = octets[i] + (increment & 0xFF);
-                
+MACAddress& MACAddress::operator+=(long increment) {
+    bool isNegative = increment < 0;
+    if (isNegative)
+        increment *= -1;
+    for (int i = MACADDRESS_SIZE - 1; i >= 0; --i) {
+        long sum = octets[i] + (isNegative ? -1 : 1) * (increment & 0xFF);
         if (sum > 0xFF) {
             if (i == 0) 
                 throw std::overflow_error("MAC address overflow.");
                     
             octets[i] = sum & 0xFF;
             increment = (increment >> 8) + 1;
+        } else if (sum < 0) {
+            if (i == 0 || !octets[i-1]) 
+                throw std::underflow_error("MAC address underflow.");
+
+            octets[i] = 0xFF + sum + 1;
+            octets[i-1] -= 1;
+            increment = increment >> 8;
         } else {
             octets[i] = sum;
             increment >>= 8;
@@ -75,18 +83,18 @@ MACAddress& MACAddress::operator+=(int increment) {
     return *this;
 }
 
-MACAddress& MACAddress::operator-=(int decrement) {
+MACAddress& MACAddress::operator-=(long decrement) {
     *this += -decrement;
     return *this;
 }
 
-MACAddress MACAddress::operator+(int increment) const {
+MACAddress MACAddress::operator+(long increment) const {
     MACAddress result(*this);
     result += increment;
     return result;
 }
 
-MACAddress MACAddress::operator-(int decrement) const {
+MACAddress MACAddress::operator-(long decrement) const {
     MACAddress result(*this);
     result += -decrement;
     return result;
@@ -97,27 +105,26 @@ MACAddress& MACAddress::operator=(const std::string& str) {
 	return *this;
 }
 
-MACAddress& MACAddress::operator=(const std::array<uint8_t, 6>& _octets) {
+MACAddress& MACAddress::operator=(const std::array<uint8_t, MACADDRESS_SIZE>& _octets) {
 	octets = _octets;
 	return *this;
 }
 
+MACAddress& MACAddress::operator=(const MACAddress& other) {
+	octets = other.octets;
+	return *this;
+}
 
 bool MACAddress::operator==(const std::string& str) const {
-	MACAddress other;
-	try {
-		other = str;
-	} catch (...) {
-		return false; 
-	}
+	MACAddress other = str;
 	return octets == other.octets;
 }
 
 bool MACAddress::operator<(const MACAddress& other) const {
-    for (uint8_t i=0; i<5; i++)
-        if (octets[i] < other.octets[i])
-            return true;
-    return octets[5] >= other.octets[5];
+    for (uint8_t i=0; i<MACADDRESS_SIZE-1; i++)
+        if (octets[i] > other.octets[i])
+            return false;
+    return octets[MACADDRESS_SIZE-1] < other.octets[MACADDRESS_SIZE];
 }
 
 bool MACAddress::operator==(const MACAddress& other) const {
@@ -130,4 +137,4 @@ std::ostream& operator<<(std::ostream& os, const MACAddress& mac) {
 	return os;
 }
 
-const std::array<uint8_t, 6> MACAddress::broadcastAddress = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const std::array<uint8_t, MACADDRESS_SIZE> MACAddress::broadcastAddress = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
