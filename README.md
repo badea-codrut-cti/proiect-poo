@@ -2,19 +2,19 @@
 
 ### Tema 0
 
-- [ ] Nume proiect (poate fi schimbat ulterior)
-- [ ] Scurtă descriere a temei alese, ce v-ați propus să implementați
+- [x] Nume proiect (poate fi schimbat ulterior)
+- [x] Scurtă descriere a temei alese, ce v-ați propus să implementați
 
 ## Tema 1
 
 #### Cerințe
 - [x] definirea a minim **3-4 clase** folosind compunere
 - [x] constructori de inițializare
-- [ ] pentru o clasă: constructor de copiere, `operator=` de copiere, destructor
+- [x] pentru o clasă: constructor de copiere, `operator=` de copiere, destructor
 <!-- - [ ] pentru o altă clasă: constructor de mutare, `operator=` de mutare, destructor -->
 <!-- - [ ] pentru o altă clasă: toate cele 5 funcții membru speciale -->
 - [x] `operator<<` pentru toate clasele pentru afișare (std::ostream)
-- [ ] cât mai multe `const` (unde este cazul)
+- [x] cât mai multe `const` (unde este cazul)
 - [x] implementarea a minim 3 funcții membru publice pentru funcționalități specifice temei alese
 - [ ] scenariu de utilizare a claselor definite:
   - crearea de obiecte și apelarea tuturor funcțiilor membru publice în main
@@ -36,13 +36,13 @@
   - [ ] apelarea constructorului din clasa de bază din constructori din derivate
   - [ ] smart pointers (recomandat, opțional)
   - [x] `dynamic_cast`/`std::dynamic_pointer_cast` pentru downcast cu sens
-- [ ] suprascris cc/op= pentru copieri/atribuiri corecte, copy and swap
-- [ ] excepții
+- [x] suprascris cc/op= pentru copieri/atribuiri corecte, copy and swap
+- [x] excepții
   - [ ] ierarhie proprie cu baza `std::exception` sau derivată din `std::exception`; minim 2 clase pentru erori specifice
   - [ ] utilizare cu sens: de exemplu, `throw` în constructor, `try`/`catch` în `main`
-- [ ] funcții și atribute `static`
+- [x] funcții și atribute `static`
 - [x] STL
-- [ ] cât mai multe `const`
+- [x] cât mai multe `const`
 - [ ] la sfârșit: commit separat cu adăugarea unei noi clase derivate fără a modifica restul codului, pe lângă cele 3 derivate deja adăugate
   - noua derivată nu poate fi una existentă care a fost ștearsă și adăugată din nou
 - [ ] tag de `git`: de exemplu `v0.2`
