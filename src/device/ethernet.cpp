@@ -1,11 +1,16 @@
 #include "./ethernet.h"
 #include "./device.h"
+#include "../protocoale/arp.h"
+#include "../date/osi/network.h"
 #include <memory>
 #include <stdexcept>
 #include <iostream>
 
 // "Nu esti conectat la eternet, ai restanta puisor"
 bool EthernetInterface::receiveData(DataLinkLayer& _data) {
+    if (!isOn)
+        return false;
+
     return device.receiveData(_data, *this);
 }
 
@@ -14,7 +19,7 @@ device(_device), macAddress(publicMACCounter += 1) {
 }
 
 EthernetInterface::~EthernetInterface() {
-    if (link)
+    if (link != nullptr)
         link->disconnect();
 }   
 
@@ -75,6 +80,16 @@ bool EthernetInterface::sendData(DataLinkLayer& data) {
     return link->receiveData(data);
 }
 
+bool EthernetInterface::sendARPRequest(const IPv4Address& _add) {
+    if (!address.isInSameSubnet(_add))
+        throw std::invalid_argument("Cannot send an ARP request to a different subnet.");
+
+    ARPPayload pl = ARPPayload::createARPRequest(macAddress, address, _add);
+    DataLinkLayer l2(macAddress, MACAddress::broadcastAddress, pl, DataLinkLayer::ARP);
+    NetworkLayer l3(l2, address, _add);
+    return sendData(l3);
+}
+
 bool EthernetInterface::disconnect() {
     if (!link)
         return true;
@@ -96,12 +111,16 @@ bool EthernetInterface::getState() const {
     return isOn;
 }
 
-std::ostream& operator<<(std::ostream& os, const EthernetInterface& ip) {
-    os << std::string("mac-address ") << ip.macAddress << std::string("\r\n");
-    os << std::string("ip address ") << ip.address << std::string("\r\n!\r\n");
-    os << std::string("speed ") << std::to_string(ip.speed) << std::string("\r\n");
-    os << std::string("bandwidth ") << std::to_string(ip.bandwidth) << std::string("\r\n");
+SubnetAddress EthernetInterface::getAddress() const {
+    return address;
+}
 
+std::ostream& operator<<(std::ostream& os, const EthernetInterface& ip) {
+    os << "mac-address " << ip.macAddress << "\r\n";
+    os << "ip address " << ((IPv4Address)ip.address) << " " << ip.address.getMaskDotNotation() << "\r\n";
+    os << "speed " << std::to_string(ip.speed) << "\r\n";
+    os << "bandwidth "<< std::to_string(ip.bandwidth) << "\r\n";
+    os << (ip.isOn ? "no shutdown" : "shutdown") << "\r\n";
     return os;
 }
 

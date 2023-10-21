@@ -5,20 +5,24 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+const std::string DEFAULT_DEVICE_HOSTNAME = "Device";
+
 class Device {
     private:
         std::map<IPv4Address, MACAddress> arpCache{};
 
     protected:
-        bool isOn{false};
+        bool isOn{true};
 
         NetworkAdapter adapter;
+
+        std::string hostname;
 
         MACAddress getArpEntryOrBroadcast(const IPv4Address&);
 
         virtual bool interfaceCallback(DataLinkLayer&, uint8_t);
 
-        explicit Device(uint8_t);
+        explicit Device(uint8_t, std::string=DEFAULT_DEVICE_HOSTNAME);
 
     public:
         Device();
@@ -27,7 +31,15 @@ class Device {
 
         virtual void turnOff();
 
+        void setHostname(const std::string&);
+
         [[nodiscard]] bool getState() const;
+
+        [[nodiscard]] const NetworkAdapter& getNetworkAdapter() const;
+
+        [[nodiscard]] const std::string& getHostname() const;
+
+        [[nodiscard]] const std::map<IPv4Address, MACAddress>& getARPCache() const;
 
         virtual bool receiveData(DataLinkLayer&, EthernetInterface&);
 

@@ -23,7 +23,7 @@ class EthernetInterface {
 
         SubnetAddress address;
         MACAddress macAddress;
-        bool isOn{false};
+        bool isOn{true};
         Duplex duplex{AUTO};
 
         bool receiveData(DataLinkLayer&);
@@ -54,6 +54,8 @@ class EthernetInterface {
 
         bool sendData(DataLinkLayer&);
 
+        bool sendARPRequest(const IPv4Address&);
+
         bool disconnect();
 
         [[nodiscard]] unsigned long getSpeed() const;
@@ -61,6 +63,8 @@ class EthernetInterface {
         [[nodiscard]] MACAddress getMacAddress() const;
 
         [[nodiscard]] bool getState() const;
+
+        [[nodiscard]] SubnetAddress getAddress() const;
 
         friend std::ostream& operator<<(std::ostream&, const EthernetInterface&);
 };

@@ -1,6 +1,5 @@
 #include <cstdint>
 #include <stdexcept>
-#include <vector>
 #include "./ethernet.h"
 
 #ifndef ADAPTER_H
@@ -22,7 +21,9 @@ class NetworkAdapter {
 
         [[nodiscard]] uint8_t getIntefaceIndex(const MACAddress&) const;
 
-        EthernetInterface& operator[](uint8_t index);
+        [[nodiscard]] uint8_t getIntefaceIndex(const IPv4Address&) const;
+
+        EthernetInterface& operator[](uint8_t index) const;
 };
 
 #endif
