@@ -8,7 +8,7 @@ const uint8_t MACADDRESS_SIZE = 6;
 
 class MACAddress {
     private:
-        std::array<uint8_t, 6> octets; 
+        std::array<uint8_t, MACADDRESS_SIZE> octets; 
 
         void stringToOctets(const std::string& str);
 
@@ -26,6 +26,8 @@ class MACAddress {
         [[nodiscard]] std::string toString() const;
 
         [[nodiscard]] bool isMulticast() const;
+
+        [[nodiscard]] const std::array<uint8_t, MACADDRESS_SIZE>& getOctets() const;
 
         MACAddress& operator+=(long);
 

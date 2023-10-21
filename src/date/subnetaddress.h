@@ -26,9 +26,19 @@ class SubnetAddress : public IPv4Address {
 
         [[nodiscard]] bool isMulticastAddress() const;
 
-        [[nodiscard]] bool isInSameSubnet(SubnetAddress) const;
+        [[nodiscard]] bool isInSameSubnet(const SubnetAddress&) const;
+
+        [[nodiscard]] bool isInSameSubnet(const IPv4Address&) const;
+
+        [[nodiscard]] IPv4Address getMaskDotNotation() const;
 
         SubnetAddress& operator=(const SubnetAddress&);
+
+        bool operator==(const std::string&) const;
+
+        bool operator==(const IPv4Address&) const;
+
+        bool operator<(const SubnetAddress&) const;
 
         friend std::ostream& operator<<(std::ostream&, const SubnetAddress&);
 };

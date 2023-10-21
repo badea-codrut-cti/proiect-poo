@@ -23,9 +23,9 @@ class IPv4Address {
         IPv4Address& operator=(const std::string&);
         bool operator==(const IPv4Address&) const;
         bool operator==(const std::string&) const;
-
         bool operator<(const IPv4Address&) const;
-
+        bool operator>=(const IPv4Address&) const;
+        
         friend std::ostream& operator<<(std::ostream&, const IPv4Address&);
 };
 

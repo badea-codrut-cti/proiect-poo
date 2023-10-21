@@ -61,9 +61,7 @@ bool IPv4Address::operator==(const IPv4Address& other) const {
 }
 
 bool IPv4Address::operator==(const std::string& str) const {
-    IPv4Address other;
-    other = str;
-    return octets == other.octets;
+    return str == toString();
 }
 
 bool IPv4Address::operator<(const IPv4Address& other) const {
@@ -72,6 +70,10 @@ bool IPv4Address::operator<(const IPv4Address& other) const {
             return false;
 
     return octets[IPV4_SIZE - 1] < other.octets[IPV4_SIZE - 1];
+}
+
+bool IPv4Address::operator>=(const IPv4Address& other) const {
+    return !(*this < other);
 }
 
 std::ostream& operator<<(std::ostream& os, const IPv4Address& ip) {
