@@ -52,7 +52,7 @@ IPv4Address SubnetAddress::getNetworkAddress() const {
     for (int i = 0; i < 4; i++) 
         networkAddress[i] = this->octets[i] & (mask >> (24 - i * 8));
             
-    return {networkAddress};
+    return IPv4Address{networkAddress};
 }
 
 IPv4Address SubnetAddress::getBroadcastAddress() const {
@@ -62,7 +62,7 @@ IPv4Address SubnetAddress::getBroadcastAddress() const {
     for (int i = 0; i < 4; i++) 
         broadcastAddress[i] = this->octets[i] | (~mask >> (24 - i * 8));
             
-    return {broadcastAddress};
+    return IPv4Address{broadcastAddress};
 }
 
 bool SubnetAddress::isMulticastAddress() const {
@@ -135,7 +135,7 @@ IPv4Address SubnetAddress::getMaskDotNotation() const {
         }
     }
 
-    return {dotNotation};
+    return IPv4Address{dotNotation};
 }
 
 std::ostream& operator<<(std::ostream& os, const SubnetAddress& add) {

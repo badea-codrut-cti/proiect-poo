@@ -13,12 +13,12 @@ void IPv4Address::stringToOctets(const std::string& str) {
 
     for (size_t i = 0; i < IPV4_SIZE; ++i) {
         if (!getline(iss, token, '.')) {
-            throw std::invalid_argument("Format de adresa IP invalid.");
+            throw std::invalid_argument("Invalid IP address format.");
         }
         try {
             newOctets[i] = std::stoi(token);
-        } catch (...) {
-            throw std::invalid_argument("Format de adresa IP invalid.");
+        } catch ([[maybe_unused]] const std::invalid_argument& e) {
+            throw std::invalid_argument("Invalid IP address format.");
         }
     }
 
@@ -31,7 +31,7 @@ std::array<uint8_t, IPV4_SIZE> IPv4Address::getOctets() const {
 
 IPv4Address::IPv4Address() : octets({127, 0, 0, 1}) {}
 
-IPv4Address::IPv4Address(const IPv4Address& other) : octets(other.octets) {}
+IPv4Address::IPv4Address(const IPv4Address& other) = default;
 
 IPv4Address::IPv4Address(const std::array<uint8_t, 4>& octets) : octets(octets) {}
 

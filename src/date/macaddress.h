@@ -19,9 +19,9 @@ class MACAddress {
 
         MACAddress(const MACAddress&);
 
-	    MACAddress(const std::array<uint8_t, MACADDRESS_SIZE>&);
+	    explicit MACAddress(const std::array<uint8_t, MACADDRESS_SIZE>&);
 
-        MACAddress(const std::string&);
+        explicit MACAddress(const std::string&);
 
         [[nodiscard]] std::string toString() const;
 

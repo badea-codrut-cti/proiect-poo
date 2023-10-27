@@ -12,7 +12,7 @@ class SubnetAddress : public IPv4Address {
 
         SubnetAddress(const IPv4Address&, uint8_t);
 
-        SubnetAddress(const IPv4Address&);
+        explicit SubnetAddress(const IPv4Address&);
 
         SubnetAddress(const SubnetAddress&);
 

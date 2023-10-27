@@ -14,8 +14,8 @@ class IPv4Address {
     public:
         IPv4Address();
         IPv4Address(const IPv4Address&);
-        IPv4Address(const std::array<uint8_t, IPV4_SIZE>&);
-        IPv4Address(const std::string&);
+        explicit IPv4Address(const std::array<uint8_t, IPV4_SIZE>&);
+        explicit IPv4Address(const std::string&);
 
         [[nodiscard]] std::string toString() const;
         [[nodiscard]] std::array<uint8_t, IPV4_SIZE> getOctets() const;

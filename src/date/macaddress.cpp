@@ -12,13 +12,13 @@ void MACAddress::stringToOctets(const std::string& str) {
 
 	for (size_t i = 0; i < MACADDRESS_SIZE; ++i) {
 		if (!getline(iss, token, ':')) {
-			throw std::invalid_argument("Format de adresa MAC invalid.");
+			throw std::invalid_argument("Invalid MAC address format.");
 		}
 			
         try {
 			newOctets[i] = std::stoi(token, nullptr, 16);
-		} catch (...) {
-			throw std::invalid_argument("Format de adresa MAC invalid.");
+		} catch ([[maybe_unused]] const std::invalid_argument& e) {
+			throw std::invalid_argument("Invalid MAC address format.");
 		}
     }
 
@@ -27,7 +27,7 @@ void MACAddress::stringToOctets(const std::string& str) {
 
 MACAddress::MACAddress(): octets(broadcastAddress) {}
 
-MACAddress::MACAddress(const MACAddress& other) : octets(other.octets) {}
+MACAddress::MACAddress(const MACAddress& other) = default;
 
 MACAddress::MACAddress(const std::array<uint8_t, MACADDRESS_SIZE>& octets) : octets(octets) {}
 
@@ -110,13 +110,10 @@ MACAddress& MACAddress::operator=(const std::array<uint8_t, MACADDRESS_SIZE>& _o
 	return *this;
 }
 
-MACAddress& MACAddress::operator=(const MACAddress& other) {
-	octets = other.octets;
-	return *this;
-}
+MACAddress& MACAddress::operator=(const MACAddress& other) = default;
 
 bool MACAddress::operator==(const std::string& str) const {
-	MACAddress other = str;
+	MACAddress other(str);
 	return octets == other.octets;
 }
 
