@@ -11,9 +11,7 @@ DataLinkLayer::DataLinkLayer(const DataLinkLayer& layer):
 source(layer.source), destination(layer.destination), payload(layer.payload), l2type(layer.l2type) {
 }
 
-DataLinkLayer::~DataLinkLayer() {
-    
-}
+DataLinkLayer::~DataLinkLayer() = default;
 
 MACAddress DataLinkLayer::getMACSource() const {
     return source;

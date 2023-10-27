@@ -8,9 +8,10 @@ const uint8_t DEFAULT_TTL = 64;
 
 class NetworkLayer: public DataLinkLayer {
     public:
+        // https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
         enum IPProtocolType : uint8_t {
             ICMP    = 1,
-            IPIP    = 4,
+            IPV4    = 4,
             TCP     = 6,
             UDP     = 17,
             GRE     = 47,
@@ -38,6 +39,8 @@ class NetworkLayer: public DataLinkLayer {
         [[nodiscard]] IPv4Address getIPDestination() const;
 
         [[nodiscard]] uint8_t getTTL() const;
+
+        [[nodiscard]] IPProtocolType getL3Protocol() const;
 
         friend std::ostream& operator<<(std::ostream&, const NetworkLayer&);
 };

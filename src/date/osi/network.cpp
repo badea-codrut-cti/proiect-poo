@@ -31,6 +31,10 @@ uint8_t NetworkLayer::getTTL() const {
     return TTL;
 }
 
+NetworkLayer::IPProtocolType NetworkLayer::getL3Protocol() const {
+    return proto;
+}
+
 std::ostream& operator<<(std::ostream& os, const NetworkLayer& other) {
 	os << other.source << std::string("->") << other.destination <<
     std::string(" (TTL:") << std::to_string(other.TTL) << std::string(")");
