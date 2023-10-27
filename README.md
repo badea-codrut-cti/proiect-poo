@@ -1,4 +1,6 @@
-# OOP Template
+# Autodragan
+
+Simulator de protocoale si topologii de retea.
 
 ### Tema 0
 
@@ -30,10 +32,10 @@
   - minim o clasă de bază și **3 clase derivate**
   - ierarhia trebuie să fie cu bază proprie, nu derivată dintr-o clasă predefinită
   - [ ] clasă cu atribut de tip pointer la o clasă de bază cu derivate
-  - [ ] funcții virtuale (pure) apelate prin pointeri de bază din clasa care conține atributul de tip pointer de bază
+  - [x] funcții virtuale (pure) apelate prin pointeri de bază din clasa care conține atributul de tip pointer de bază
     - minim o funcție virtuală va fi **specifică temei** (e.g. nu simple citiri/afișări)
     - constructori virtuali (clone): sunt necesari, dar nu se consideră funcții specifice temei
-  - [ ] apelarea constructorului din clasa de bază din constructori din derivate
+  - [x] apelarea constructorului din clasa de bază din constructori din derivate
   - [ ] smart pointers (recomandat, opțional)
   - [x] `dynamic_cast`/`std::dynamic_pointer_cast` pentru downcast cu sens
 - [x] suprascris cc/op= pentru copieri/atribuiri corecte, copy and swap
@@ -58,4 +60,7 @@
 
 ## Resurse
 
-- adăugați trimiteri către resursele externe care v-au ajutat sau pe care le-ați folosit
+[IEEE 802 numbers](https://www.iana.org/assignments/ieee-802-numbers/ieee-802-numbers.xhtml)
+
+[L3 Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+

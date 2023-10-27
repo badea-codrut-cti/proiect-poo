@@ -12,7 +12,11 @@ cmake --build . --config Debug
 ASAN_OPTIONS=detect_leaks=1 ./autodragan
 
 cd ..
-cppcheck --enable=all --std=c++11 --check-config --suppress=missingIncludeSystem src/
+
+for i in "src/" "examples/"
+do
+  cppcheck --enable=all --std=c++11 --check-config --suppress=missingIncludeSystem $i
+done
 
 cd build
 cmake ..

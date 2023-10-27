@@ -6,32 +6,35 @@
 #include "src/date/osi/network.h"
 #include "src/protocoale/arp.h"
 #include "src/protocoale/payload.h"
+#include "src/device/devices/router.h"
+#include "src/device/devices/end_device.h"
 
 using namespace std;
 
 int main() {
-    Device brasov, bon;
+    EndDevice brasov, bon;
     L2Switch sw_brasov, sw_bon;
-    brasov.getNetworkAdapter()[0].connect(&sw_brasov.getNetworkAdapter()[0]);
-    sw_brasov.getNetworkAdapter()[1].connect(&sw_bon.getNetworkAdapter()[0]);
-    sw_bon.getNetworkAdapter()[1].connect(&bon.getNetworkAdapter()[0]);
-    brasov.getNetworkAdapter()[0].setIpAddress({{"192.168.1.2"}, 24});
-    cout << brasov.getNetworkAdapter()[0];
-    bon.getNetworkAdapter()[0].setIpAddress({{"192.168.1.3"}, 22});
+    Router r_brasov, r_bon;
+    brasov.setIpAddress(SubnetAddress(IPv4Address{"173.32.32.81"}, 21));
+    brasov.setDefaultGateway(IPv4Address{"173.32.32.1"});
+    brasov.connect(&sw_brasov.getNetworkAdapter()[0]);
 
-    brasov.getNetworkAdapter()[0].sendARPRequest({"192.168.1.3"});
-    for (auto& arp : brasov.getARPCache()) {
-        cout << arp.first << " " << arp.second << endl;
-    }
-    cout << "====" << endl;
-    bon.getNetworkAdapter()[0].sendARPRequest({"192.168.1.2"});
-    for (auto& arp : bon.getARPCache()) {
-        cout << arp.first << " " << arp.second << endl;
-    }
-    cout << "====" << endl;
-    L2Payload pl;
-    DataLinkLayer frame(brasov.getNetworkAdapter()[0].getMacAddress(),
-    bon.getNetworkAdapter()[0].getMacAddress(), pl, DataLinkLayer::IPV4);
-    brasov.getNetworkAdapter()[0].sendData(frame);
+    sw_brasov.getNetworkAdapter()[1].connect(&r_brasov.getNetworkAdapter()[0]);
+    r_brasov.getNetworkAdapter()[0].setIpAddress(SubnetAddress(IPv4Address{"173.32.32.1"}, 21));
+    brasov.sendARPRequest(brasov.getDefaultGateway());
+
+    r_brasov.getNetworkAdapter()[1].setIpAddress(SubnetAddress(IPv4Address{"10.10.10.5"}, 30));
+    r_bon.getNetworkAdapter()[1].setIpAddress(SubnetAddress(IPv4Address{"10.10.10.6"}, 30));
+
+    r_brasov.addStaticRoute(SubnetAddress(IPv4Address{"188.26.2.0"}, 24), IPv4Address{"10.10.10.6"});
+    r_bon.addStaticRoute(SubnetAddress(IPv4Address{"173.32.32.0"}, 21), IPv4Address{"10.10.10.5"});
+
+    bon.setIpAddress(SubnetAddress(IPv4Address{"188.26.2.35"}, 24));
+    bon.setDefaultGateway(SubnetAddress(IPv4Address{"188.26.2.1"}, 24));
+    bon.connect(&sw_bon.getNetworkAdapter()[0]);
+
+    sw_bon.getNetworkAdapter()[1].connect(&r_bon.getNetworkAdapter()[0]);
+    r_bon.getNetworkAdapter()[0].setIpAddress(SubnetAddress(IPv4Address{"188.26.2.1"}, 24));
+    bon.sendARPRequest(bon.getDefaultGateway());
     return 0;
 }
