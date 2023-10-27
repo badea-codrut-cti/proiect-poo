@@ -3,10 +3,6 @@
 
 #ifndef ETHERNET_H
 #define ETHERNET_H
-
-enum Duplex {
-    FULL, HALF, AUTO
-};
     
 class Device;
 
@@ -23,8 +19,7 @@ class EthernetInterface {
 
         SubnetAddress address;
         MACAddress macAddress;
-        bool isOn{true};
-        Duplex duplex{AUTO};
+        bool isOn{true}, unnumbered;
 
         bool receiveData(DataLinkLayer&);
 
@@ -34,7 +29,7 @@ class EthernetInterface {
         // queue, MTU, pppoe, QoS, HSRP
 
     public:
-        explicit EthernetInterface(Device&);
+        explicit EthernetInterface(Device&, bool=false);
 
         ~EthernetInterface();
 
@@ -46,15 +41,11 @@ class EthernetInterface {
 
         bool setSpeed(unsigned long);
 
-        bool setDuplex(Duplex);
-
         bool turnOn();
         
         bool turnOff();
 
         bool sendData(DataLinkLayer&);
-
-        bool sendARPRequest(const IPv4Address&);
 
         bool disconnect();
 

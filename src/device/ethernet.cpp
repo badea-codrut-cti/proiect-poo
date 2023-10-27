@@ -14,8 +14,8 @@ bool EthernetInterface::receiveData(DataLinkLayer& _data) {
     return device.receiveData(_data, *this);
 }
 
-EthernetInterface::EthernetInterface(Device& _device):
-device(_device), macAddress(publicMACCounter += 1) {
+EthernetInterface::EthernetInterface(Device& _device, bool _unnumbered):
+device(_device), macAddress(publicMACCounter += 1), unnumbered(_unnumbered) {
 }
 
 EthernetInterface::~EthernetInterface() {
@@ -37,6 +37,9 @@ bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
     if (add == add.getNetworkAddress())
         throw std::invalid_argument("Interface was assigned the network address.");
 
+    if (unnumbered)
+        throw std::invalid_argument("Unnumbered interface cannot be assigned an IP address.");
+
     address = add;
     return true;
 }
@@ -57,11 +60,6 @@ bool EthernetInterface::setSpeed(unsigned long _speed) {
     return true;
 }
 
-bool EthernetInterface::setDuplex(Duplex _duplex) {
-    duplex = _duplex;
-    return true;
-}
-
 bool EthernetInterface::turnOn() {
     return isOn = true;
 }
@@ -74,20 +72,7 @@ bool EthernetInterface::sendData(DataLinkLayer& data) {
     if (link == nullptr || !isOn)
         return false; 
 
-    if (link->duplex != duplex && duplex != AUTO)
-        return false;
-
     return link->receiveData(data);
-}
-
-bool EthernetInterface::sendARPRequest(const IPv4Address& _add) {
-    if (!address.isInSameSubnet(_add))
-        throw std::invalid_argument("Cannot send an ARP request to a different subnet.");
-
-    ARPPayload pl = ARPPayload::createARPRequest(macAddress, address, _add);
-    DataLinkLayer l2(macAddress, MACAddress::broadcastAddress, pl, DataLinkLayer::ARP);
-    NetworkLayer l3(l2, address, _add);
-    return sendData(l3);
 }
 
 bool EthernetInterface::disconnect() {

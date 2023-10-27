@@ -13,7 +13,7 @@ class NetworkAdapter {
         EthernetInterface** interfaces;
 
     public:
-        NetworkAdapter(Device&, uint8_t);
+        NetworkAdapter(Device&, uint8_t, bool=false);
 
         ~NetworkAdapter();
 
@@ -23,7 +23,13 @@ class NetworkAdapter {
 
         [[nodiscard]] uint8_t getIntefaceIndex(const IPv4Address&) const;
 
+        [[nodiscard]] bool findInterface(const MACAddress&) const;
+
+        [[nodiscard]] bool findInterface(const IPv4Address&) const;
+
         EthernetInterface& operator[](uint8_t index) const;
+        
+        friend std::ostream& operator<<(std::ostream& o, const NetworkAdapter&);
 };
 
 #endif

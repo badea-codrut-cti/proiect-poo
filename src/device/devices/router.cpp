@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <typeinfo>
 
-Router::Router(): Device(ROUTER_INT_COUNT) {
+Router::Router(): Device(ROUTER_INT_COUNT, false, DEFAULT_ROUTER_HOSTNAME) {
     for (uint8_t i = 0; i < ROUTER_INT_COUNT; i++)
         adapter[i].setSpeed(1000);
 }
@@ -18,12 +18,10 @@ int Router::findRoute(const IPv4Address& add) {
         if (!route.first.isInSameSubnet(add)) 
             continue;
         
-        try {
-            int index = adapter.getIntefaceIndex(route.second);
-            return index;
-        } catch(const std::out_of_range& e) {
-            return findRoute(route.second);
-        }
+        if (adapter.findInterface(route.second))
+            return adapter.getIntefaceIndex(route.second);
+        
+        return findRoute(route.second);
     }
     
     return -1;
@@ -41,7 +39,7 @@ bool Router::interfaceCallback(DataLinkLayer& data, [[maybe_unused]] uint8_t fIn
 
         frame.age();
         adapter[index].sendData(frame);
-    } catch (std::bad_cast& e) {
+    } catch ([[maybe_unused]] std::bad_cast& e) {
         // Avem de a face cu trafic L2 
         return false;
     }
