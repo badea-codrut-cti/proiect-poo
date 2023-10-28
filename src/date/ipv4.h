@@ -21,6 +21,7 @@ class IPv4Address {
         [[nodiscard]] std::array<uint8_t, IPV4_SIZE> getOctets() const;
 
         IPv4Address& operator=(const std::string&);
+        IPv4Address& operator=(const IPv4Address&);
         bool operator==(const IPv4Address&) const;
         bool operator==(const std::string&) const;
         bool operator<(const IPv4Address&) const;

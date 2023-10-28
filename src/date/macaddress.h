@@ -49,6 +49,8 @@ class MACAddress {
 
 	    bool operator==(const std::string&) const;
 
+        bool operator!=(const MACAddress&) const;
+
 	    friend std::ostream& operator<<(std::ostream&, const MACAddress&);
 };
 

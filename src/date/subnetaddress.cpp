@@ -69,6 +69,10 @@ bool SubnetAddress::isMulticastAddress() const {
     return (octets[0] & 0xF0) == 0xE0;
 }
 
+bool SubnetAddress::isLoopbackAddress() const {
+    return octets[0] == 127;
+}
+
 bool SubnetAddress::isInSameSubnet(const SubnetAddress& other) const {
     if (subnetMask != other.subnetMask)
         return false;

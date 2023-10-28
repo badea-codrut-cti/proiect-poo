@@ -26,6 +26,8 @@ class SubnetAddress : public IPv4Address {
 
         [[nodiscard]] bool isMulticastAddress() const;
 
+        [[nodiscard]] bool isLoopbackAddress() const;
+
         [[nodiscard]] bool isInSameSubnet(const SubnetAddress&) const;
 
         [[nodiscard]] bool isInSameSubnet(const IPv4Address&) const;

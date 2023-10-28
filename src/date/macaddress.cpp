@@ -128,6 +128,10 @@ bool MACAddress::operator==(const MACAddress& other) const {
 	return octets == other.octets;
 }
 
+bool MACAddress::operator!=(const MACAddress& other) const {
+    return octets != other.octets;
+}
+
 const std::array<uint8_t, MACADDRESS_SIZE>& MACAddress::getOctets() const {
     return octets;
 }
