@@ -20,7 +20,7 @@ class Device {
 
         MACAddress getArpEntryOrBroadcast(const IPv4Address&);
 
-        bool handleARPRequest(DataLinkLayer&, uint8_t);
+        virtual bool handleARPRequest(DataLinkLayer&, uint8_t);
 
         virtual bool interfaceCallback(DataLinkLayer&, uint8_t);
 
@@ -35,7 +35,7 @@ class Device {
 
         void setHostname(const std::string&);
 
-        bool sendARPRequest(const IPv4Address&);
+        virtual bool sendARPRequest(const IPv4Address&, bool);
 
         [[nodiscard]] bool getState() const;
 

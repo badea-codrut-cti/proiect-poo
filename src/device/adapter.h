@@ -23,9 +23,13 @@ class NetworkAdapter {
 
         [[nodiscard]] uint8_t getIntefaceIndex(const IPv4Address&) const;
 
+        [[nodiscard]] uint8_t findInSubnet(const IPv4Address&) const;
+
         [[nodiscard]] bool findInterface(const MACAddress&) const;
 
         [[nodiscard]] bool findInterface(const IPv4Address&) const;
+
+        [[nodiscard]] bool hasInterfaceInSubnet(const IPv4Address&) const;
 
         EthernetInterface& operator[](uint8_t index) const;
         

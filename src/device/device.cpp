@@ -26,19 +26,24 @@ void Device::setHostname(const std::string& str) {
     hostname = str;
 }
 
-bool Device::sendARPRequest(const IPv4Address& _add) {
+bool Device::sendARPRequest(const IPv4Address& _add, bool forced) {
     for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
         if (!adapter[i].getAddress().isInSameSubnet(_add))
             continue;
 
-        ARPPayload pl = ARPPayload::createARPRequest(adapter[i].getMacAddress(), 
+        if (getArpEntryOrBroadcast(_add) != MACAddress{MACAddress::broadcastAddress} && !forced) 
+            return true;
+        
+        ARPPayload pl = ARPParser::createARPRequest(adapter[i].getMacAddress(), 
         adapter[i].getAddress(), _add);
         DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
         NetworkLayer l3(l2, adapter[i].getAddress(), _add);
+        std::cout << hostname << " sent ARP request. (to: " << _add << ")\r\n";
         return adapter[i].sendData(l3);
     }
 
-    throw std::invalid_argument("Cannot find interface with IP in the same subnet as ARP destination.");
+    //throw std::invalid_argument("Cannot find interface with IP in the same subnet as ARP destination.");
+    return false;
 }
 
 void Device::turnOn() {
@@ -65,40 +70,27 @@ bool Device::handleARPRequest(DataLinkLayer& _data, uint8_t fIndex) {
     try {
         auto payload = dynamic_cast<ARPPayload&>(_data.getPayload());
 
-        std::array<uint8_t, MACADDRESS_SIZE> hwSrc{};
-        std::array<uint8_t, MACADDRESS_SIZE> hwDest{};
+        auto [hwSrc, hwDest, protoSrc, protoDest] = ARPParser::parseARPPayload(payload);
 
-        for (uint8_t i = 0; i < MACADDRESS_SIZE; i++) {
-            hwSrc[i] = payload.getSourceHardwareAddress()[i];
-            hwDest[i] = payload.getDestinationHardwareAddress()[i];
-        }
-
-        std::array<uint8_t, IPV4_SIZE> protoSrc{};
-        std::array<uint8_t, IPV4_SIZE> protoDest{};
-
-        for (uint8_t i = 0; i < IPV4_SIZE; i++) {
-            protoSrc[i] = payload.getSourceProtocolAddress()[i];
-            protoDest[i] = payload.getDestinationProtocolAddress()[i];
-        }
-
-        bool isItForMe = adapter.findInterface(IPv4Address{protoDest});
+        bool isItForMe = adapter.findInterface(protoDest);
 
         if (payload.getOperation() == ARPPayload::REPLY) {
             arpCache.insert(std::make_pair(protoSrc, hwSrc));
+            if (isItForMe)
+                std::cout << hostname << " received ARP reply. (from: " << protoSrc << ")\r\n";
             return isItForMe;
         } else if (isItForMe) {
-            int fIndex = adapter.getIntefaceIndex(IPv4Address{protoDest});
-            EthernetInterface& interface = adapter[fIndex];
-            ARPPayload payload(ARPPayload::REPLY, interface.getMacAddress().getOctets(),
-             hwSrc, protoDest, protoSrc);
-            DataLinkLayer l2(interface.getMacAddress(), MACAddress{hwSrc}, payload, DataLinkLayer::ARP);
-            NetworkLayer l3(l2, IPv4Address{protoDest}, IPv4Address{protoSrc});
-            interface.sendData(l3);
+            std::cout << hostname << " received ARP request. (from: " << protoSrc << ")\r\n";
+            MACAddress destMAC = adapter[adapter.getIntefaceIndex(IPv4Address{protoDest})].getMacAddress();
+            ARPPayload payload = ARPParser::createARPReply(destMAC, hwSrc, protoDest, protoSrc);
+            DataLinkLayer l2(destMAC, hwSrc, payload, DataLinkLayer::ARP);
+            NetworkLayer l3(l2, protoDest, protoSrc);
+            adapter[fIndex].sendData(l3);
             return true;
         }
 
-    } catch([[maybe_unused]]const std::bad_cast& e) {
-        throw std::invalid_argument("ARP Request does not contain valid payload");
+    } catch(const std::bad_cast&) {
+        throw std::invalid_argument("ARP Request does not contain valid payload.");
     }    
     return false;
 }
@@ -115,9 +107,11 @@ bool Device::receiveData(DataLinkLayer& _data, EthernetInterface& _interface) {
     // TODO: This should be adapted to each device's interfaceCallback override
     // Some devices will have VLANs and passive interfaces (i.e switches), thus
     // using `adapter.getInterfaceIndex` is a mistake
-    if (handleARPRequest(_data, fIndex))
+    if (handleARPRequest(_data, fIndex)) 
         return true;
 
+    std::cout << hostname << " received data.\r\n";
+    
     return interfaceCallback(_data, fIndex);
 }
 
