@@ -10,7 +10,7 @@ class Router: public Device {
     private:
         std::map<SubnetAddress, IPv4Address> routes{};
 
-        int findRoute(const IPv4Address&);
+        IPv4Address findRoute(const IPv4Address&);
 
     public:
         Router();

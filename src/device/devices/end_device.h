@@ -9,7 +9,7 @@ class EndDevice : public Device {
         bool connect(EthernetInterface*);
         bool setIpAddress(const SubnetAddress&);
         bool setDefaultGateway(const IPv4Address&);
-        bool sendData(DataLinkLayer&);
+        bool sendData(L2Payload&, const IPv4Address& = IPv4Address("127.0.0.1"));
 
         [[nodiscard]] SubnetAddress getAddress() const;
         [[nodiscard]] IPv4Address getDefaultGateway() const;
