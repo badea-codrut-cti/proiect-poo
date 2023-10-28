@@ -28,10 +28,10 @@ class ARPPayload : public L2Payload {
         };
 
     private: 
-        HardwareType hardwareType{ETHERNET};
-        ProtocolType protocolType{IPV4};
-        uint8_t hwAddLength, protoAddLength;
+        HardwareType hardwareType;
+        ProtocolType protocolType;
         Operation operation;
+        uint8_t hwAddLength, protoAddLength;
         uint8_t *sourceHardwareAddress, *destinationHardwareAddress,
         *sourceProtocolAddress, *destinationProtocolAddress;
 
@@ -41,74 +41,35 @@ class ARPPayload : public L2Payload {
         const std::array<uint8_t, N>& _srcHwAddress,
         const std::array<uint8_t, N>& _destHwAddress,
         const std::array<uint8_t, M>& _srcProtoAddress,
-        const std::array<uint8_t, M>& _destProtoAddress): 
-        operation(_operation) {
-            hwAddLength = N;
-            protoAddLength = M;
+        const std::array<uint8_t, M>& _destProtoAddress, 
+        HardwareType _hwType = ETHERNET,
+        ProtocolType _protoType = IPV4
+        );
 
-            sourceHardwareAddress = new uint8_t[_srcHwAddress.size()];
-            destinationHardwareAddress = new uint8_t[_srcHwAddress.size()];
+        ARPPayload(const ARPPayload&);
 
-            sourceProtocolAddress = new uint8_t[_srcProtoAddress.size()];
-            destinationProtocolAddress = new uint8_t[_srcProtoAddress.size()];
+        ARPPayload& operator=(const ARPPayload&);
 
-            for (unsigned long i = 0; i < _srcHwAddress.size(); i++) {
-                sourceHardwareAddress[i] = _srcHwAddress[i];
-                destinationHardwareAddress[i] = _destHwAddress[i];
-            }
+        ~ARPPayload() override;
 
-            for(unsigned long i = 0; i < _srcProtoAddress.size(); i++) {
-                sourceProtocolAddress[i] = _srcProtoAddress[i];
-                destinationProtocolAddress[i] = _destProtoAddress[i];
-            }
-        }
+        [[nodiscard]] Operation getOperation() const;
 
-        ARPPayload(const ARPPayload& other) :
-        hwAddLength(other.hwAddLength), protoAddLength(other.protoAddLength),
-        operation(other.operation) {
-            sourceHardwareAddress = new uint8_t[hwAddLength];
-            std::copy(other.sourceHardwareAddress, other.sourceHardwareAddress + hwAddLength, sourceHardwareAddress);
+        [[nodiscard]] const uint8_t* getSourceHardwareAddress() const;
 
-            destinationHardwareAddress = new uint8_t[hwAddLength];
-            std::copy(other.destinationHardwareAddress, other.destinationHardwareAddress + hwAddLength, destinationHardwareAddress);
+        [[nodiscard]] const uint8_t* getDestinationHardwareAddress() const;
 
-            sourceProtocolAddress = new uint8_t[protoAddLength];
-            std::copy(other.sourceProtocolAddress, other.sourceProtocolAddress + protoAddLength, sourceProtocolAddress);
+        [[nodiscard]] const uint8_t* getSourceProtocolAddress() const;
 
-            destinationProtocolAddress = new uint8_t[protoAddLength];
-            std::copy(other.destinationProtocolAddress, other.destinationProtocolAddress + protoAddLength, destinationProtocolAddress);
-        }
+        [[nodiscard]] const uint8_t* getDestinationProtocolAddress() const;
 
-        static ARPPayload createARPRequest(const MACAddress& _sourceHw, const IPv4Address& _sourceProto, const IPv4Address& _destProto) {
-            return {REQUEST, _sourceHw.getOctets(), 
-            {0, 0, 0, 0, 0, 1}, 
-            _sourceProto.getOctets(), _destProto.getOctets()};
-        }
+        [[nodiscard]] HardwareType getHardwareType() const;
 
-        ~ARPPayload() override {
-            delete[] sourceHardwareAddress;
-            delete[] destinationHardwareAddress;
-            delete[] sourceProtocolAddress;
-            delete[] destinationProtocolAddress;
-        }
-
-        [[nodiscard]] Operation getOperation() const {
-            return operation;
-        }
-
-        [[nodiscard]] const uint8_t* getSourceHardwareAddress() const {
-            return sourceHardwareAddress;
-        }
-
-        [[nodiscard]] const uint8_t* getDestinationHardwareAddress() const {
-            return destinationHardwareAddress;
-        }
-
-        [[nodiscard]] const uint8_t* getSourceProtocolAddress() const {
-            return sourceProtocolAddress;
-        }
-
-        [[nodiscard]] const uint8_t* getDestinationProtocolAddress() const {
-            return destinationProtocolAddress;
-        }
+        [[nodiscard]] ProtocolType getProtocolType() const;
 };  
+
+class ARPParser {
+    public:
+        static ARPPayload createARPRequest(const MACAddress&, const IPv4Address&, const IPv4Address&);
+        static ARPPayload createARPReply(const MACAddress&, const MACAddress&, const IPv4Address&, const IPv4Address&);
+        static std::tuple<MACAddress, MACAddress, IPv4Address, IPv4Address> parseARPPayload(const ARPPayload&);
+};
