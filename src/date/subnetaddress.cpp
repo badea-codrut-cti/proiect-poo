@@ -5,8 +5,8 @@
 #include <string>
 
 // "Nu lasam packet tracer sa aleaga /24. Daca lasam programul sa faca alegeri pentru noi atunci gresim."
-uint8_t SubnetAddress::getClassSubnetMask(const IPv4Address& add) {
-    std::array<uint8_t, 4> octets = add.getOctets();
+uint8_t SubnetAddress::getClassSubnetMask(const IPv4Address& address) {
+    std::array<uint8_t, 4> octets = address.getOctets();
     if (!(octets[0] & 0x80)) {
         return 8;
     }
@@ -109,9 +109,9 @@ bool SubnetAddress::operator==(const std::string& str) const {
     return str == toString();
 }
 
-bool SubnetAddress::operator==(const IPv4Address& add) const {
+bool SubnetAddress::operator==(const IPv4Address& other) const {
     for (uint8_t i = 0; i < IPV4_SIZE; i++)
-        if (octets[i] != add.getOctets()[i])
+        if (octets[i] != other.getOctets()[i])
             return false;
     
     return true;

@@ -56,7 +56,7 @@ IPv4Address& IPv4Address::operator=(const std::string& str) {
     return *this;
 }
 
-IPv4Address& IPv4Address::operator=(const IPv4Address& add) = default;
+IPv4Address& IPv4Address::operator=(const IPv4Address&) = default;
 
 bool IPv4Address::operator==(const IPv4Address& other) const {
     return octets == other.octets;

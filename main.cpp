@@ -44,7 +44,6 @@ int main() {
     r_bon.getNetworkAdapter()[0].setIpAddress(SubnetAddress(IPv4Address{"188.26.2.1"}, 24));
 
     L2Payload pl;
-    cout << "Bon sent data to Brasov.\r\n";
     bon.sendData(pl, brasov.getAddress());
     return 0;
 }

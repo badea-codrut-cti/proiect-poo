@@ -2,32 +2,32 @@
 #include <tuple>
 
 template <std::size_t N, std::size_t M>
-ARPPayload::ARPPayload(Operation _operation, 
-    const std::array<uint8_t, N>& _srcHwAddress,
-    const std::array<uint8_t, N>& _destHwAddress,
-    const std::array<uint8_t, M>& _srcProtoAddress,
-    const std::array<uint8_t, M>& _destProtoAddress, 
-    HardwareType _hwType,
-    ProtocolType _protoType): 
-    hardwareType(_hwType), protocolType(_protoType), operation(_operation) {
+ARPPayload::ARPPayload(Operation operation, 
+    const std::array<uint8_t, N>& srcHwAddress,
+    const std::array<uint8_t, N>& destHwAddress,
+    const std::array<uint8_t, M>& srcProtoAddress,
+    const std::array<uint8_t, M>& destProtoAddress, 
+    HardwareType hwType,
+    ProtocolType protoType): 
+    hardwareType(hwType), protocolType(protoType), operation(operation) {
 
     hwAddLength = N;
     protoAddLength = M;
 
-    sourceHardwareAddress = new uint8_t[_srcHwAddress.size()];
-    destinationHardwareAddress = new uint8_t[_srcHwAddress.size()];
+    sourceHardwareAddress = new uint8_t[srcHwAddress.size()];
+    destinationHardwareAddress = new uint8_t[srcHwAddress.size()];
 
-    sourceProtocolAddress = new uint8_t[_srcProtoAddress.size()];
-    destinationProtocolAddress = new uint8_t[_srcProtoAddress.size()];
+    sourceProtocolAddress = new uint8_t[srcProtoAddress.size()];
+    destinationProtocolAddress = new uint8_t[srcProtoAddress.size()];
 
-    for (unsigned long i = 0; i < _srcHwAddress.size(); i++) {
-        sourceHardwareAddress[i] = _srcHwAddress[i];
-        destinationHardwareAddress[i] = _destHwAddress[i];
+    for (unsigned long i = 0; i < srcHwAddress.size(); i++) {
+        sourceHardwareAddress[i] = srcHwAddress[i];
+        destinationHardwareAddress[i] = destHwAddress[i];
     }
 
-    for(unsigned long i = 0; i < _srcProtoAddress.size(); i++) {
-        sourceProtocolAddress[i] = _srcProtoAddress[i];
-        destinationProtocolAddress[i] = _destProtoAddress[i];
+    for(unsigned long i = 0; i < srcProtoAddress.size(); i++) {
+        sourceProtocolAddress[i] = srcProtoAddress[i];
+        destinationProtocolAddress[i] = destProtoAddress[i];
     }
 }
 

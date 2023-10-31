@@ -14,11 +14,6 @@ DataLinkLayer(layer), source(layer.source), destination(layer.destination), TTL(
 
 }
 
-void NetworkLayer::age() {
-    if (TTL > 0)
-        TTL--;
-}
-
 IPv4Address NetworkLayer::getIPSource() const {
     return source;
 }

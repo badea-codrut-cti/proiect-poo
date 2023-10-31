@@ -32,8 +32,6 @@ class NetworkLayer: public DataLinkLayer {
 
         NetworkLayer(const NetworkLayer&);
 
-        void age();
-
         [[nodiscard]] IPv4Address getIPSource() const;
 
         [[nodiscard]] IPv4Address getIPDestination() const;

@@ -37,13 +37,13 @@ class ARPPayload : public L2Payload {
 
     public:
         template <std::size_t N, std::size_t M>
-        ARPPayload(Operation _operation, 
-        const std::array<uint8_t, N>& _srcHwAddress,
-        const std::array<uint8_t, N>& _destHwAddress,
-        const std::array<uint8_t, M>& _srcProtoAddress,
-        const std::array<uint8_t, M>& _destProtoAddress, 
-        HardwareType _hwType = ETHERNET,
-        ProtocolType _protoType = IPV4
+        ARPPayload(Operation, 
+        const std::array<uint8_t, N>&,
+        const std::array<uint8_t, N>&,
+        const std::array<uint8_t, M>&,
+        const std::array<uint8_t, M>&, 
+        HardwareType = ETHERNET,
+        ProtocolType = IPV4
         );
 
         ARPPayload(const ARPPayload&);

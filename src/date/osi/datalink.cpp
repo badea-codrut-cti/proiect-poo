@@ -2,8 +2,9 @@
 #include "../../protocoale/arp.h"
 #include <iostream>
 
-DataLinkLayer::DataLinkLayer(const MACAddress& _source, const MACAddress& _destination, L2Payload& _payload, L2TypeField _l2type = IPV4): 
-source(_source), destination(_destination), payload(_payload), l2type(_l2type) {
+DataLinkLayer::DataLinkLayer(const MACAddress& sourceMac, const MACAddress& destinationMac,
+ L2Payload& l2payload, L2TypeField l2frametype = IPV4): 
+source(sourceMac), destination(destinationMac), payload(l2payload), l2type(l2frametype) {
 
 }
 

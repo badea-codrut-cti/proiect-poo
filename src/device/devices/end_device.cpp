@@ -9,26 +9,26 @@ bool EndDevice::connect(EthernetInterface* _int) {
     return adapter[0].connect(_int);
 } 
 
-bool EndDevice::setDefaultGateway(const IPv4Address& add) {
-    defaultGateway = add;
+bool EndDevice::setDefaultGateway(const IPv4Address& gatewayAddress) {
+    defaultGateway = gatewayAddress;
     return true;
 }
 
-bool EndDevice::sendData(L2Payload& _data, const IPv4Address& add) {
+bool EndDevice::sendData(L2Payload& data, const IPv4Address& target) {
     if(adapter[0].getAddress().isLoopbackAddress())
         return false;
 
-    bool hitRouter = !adapter[0].getAddress().isInSameSubnet(add);
+    bool hitRouter = !adapter[0].getAddress().isInSameSubnet(target);
 
     if (hitRouter) 
         sendARPRequest(defaultGateway, false);
     else 
-        sendARPRequest(add, false);
+        sendARPRequest(target, false);
 
     DataLinkLayer l2(adapter[0].getMacAddress(), 
-    hitRouter ? getArpEntryOrBroadcast(defaultGateway) : getArpEntryOrBroadcast(add),
-     _data, DataLinkLayer::IPV4);
-    NetworkLayer l3(l2, adapter[0].getAddress(), add);
+    hitRouter ? getArpEntryOrBroadcast(defaultGateway) : getArpEntryOrBroadcast(target),
+     data, DataLinkLayer::IPV4);
+    NetworkLayer l3(l2, adapter[0].getAddress(), target);
 
     return adapter[0].sendData(l3);
 }

@@ -26,19 +26,18 @@ void Device::setHostname(const std::string& str) {
     hostname = str;
 }
 
-bool Device::sendARPRequest(const IPv4Address& _add, bool forced) {
+bool Device::sendARPRequest(const IPv4Address& target, bool forced) {
     for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
-        if (!adapter[i].getAddress().isInSameSubnet(_add))
+        if (!adapter[i].getAddress().isInSameSubnet(target))
             continue;
 
-        if (getArpEntryOrBroadcast(_add) != MACAddress{MACAddress::broadcastAddress} && !forced) 
+        if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
             return true;
         
         ARPPayload pl = ARPParser::createARPRequest(adapter[i].getMacAddress(), 
-        adapter[i].getAddress(), _add);
+        adapter[i].getAddress(), target);
         DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
-        NetworkLayer l3(l2, adapter[i].getAddress(), _add);
-        std::cout << hostname << " sent ARP request. (to: " << _add << ")\r\n";
+        NetworkLayer l3(l2, adapter[i].getAddress(), target);
         return adapter[i].sendData(l3);
     }
 
@@ -70,20 +69,21 @@ bool Device::handleARPRequest(DataLinkLayer& _data, uint8_t fIndex) {
     try {
         auto payload = dynamic_cast<ARPPayload&>(_data.getPayload());
 
+        if (payload.getHardwareType() != ARPPayload::ETHERNET || payload.getProtocolType() != ARPPayload::IPV4)
+            return false;
+
         auto [hwSrc, hwDest, protoSrc, protoDest] = ARPParser::parseARPPayload(payload);
 
-        bool isItForMe = adapter.findInterface(protoDest);
+        bool isItForMe = adapter.hasInterface(protoDest);
 
         if (payload.getOperation() == ARPPayload::REPLY) {
             arpCache.insert(std::make_pair(protoSrc, hwSrc));
             if (isItForMe)
-                std::cout << hostname << " received ARP reply. (from: " << protoSrc << ")\r\n";
             return isItForMe;
         } else if (isItForMe) {
-            std::cout << hostname << " received ARP request. (from: " << protoSrc << ")\r\n";
             MACAddress destMAC = adapter[adapter.getIntefaceIndex(IPv4Address{protoDest})].getMacAddress();
-            ARPPayload payload = ARPParser::createARPReply(destMAC, hwSrc, protoDest, protoSrc);
-            DataLinkLayer l2(destMAC, hwSrc, payload, DataLinkLayer::ARP);
+            ARPPayload l2pl = ARPParser::createARPReply(destMAC, hwSrc, protoDest, protoSrc);
+            DataLinkLayer l2(destMAC, hwSrc, l2pl, DataLinkLayer::ARP);
             NetworkLayer l3(l2, protoDest, protoSrc);
             adapter[fIndex].sendData(l3);
             return true;
@@ -99,7 +99,7 @@ bool Device::receiveData(DataLinkLayer& _data, EthernetInterface& _interface) {
     if (!isOn)
         return false;
 
-    if (!adapter.findInterface(_interface.getMacAddress()))
+    if (!adapter.hasInterface(_interface.getMacAddress()))
         throw std::invalid_argument("Interface does not belong in the network adapter.");
     
     int fIndex = adapter.getIntefaceIndex(_interface.getMacAddress());
@@ -109,8 +109,6 @@ bool Device::receiveData(DataLinkLayer& _data, EthernetInterface& _interface) {
     // using `adapter.getInterfaceIndex` is a mistake
     if (handleARPRequest(_data, fIndex)) 
         return true;
-
-    std::cout << hostname << " received data.\r\n";
     
     return interfaceCallback(_data, fIndex);
 }

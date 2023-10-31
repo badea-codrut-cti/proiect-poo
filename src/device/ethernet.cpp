@@ -7,15 +7,15 @@
 #include <iostream>
 
 // "Nu esti conectat la eternet, ai restanta puisor"
-bool EthernetInterface::receiveData(DataLinkLayer& _data) {
+bool EthernetInterface::receiveData(DataLinkLayer& data) {
     if (!isOn)
         return false;
 
-    return device.receiveData(_data, *this);
+    return device.receiveData(data, *this);
 }
 
-EthernetInterface::EthernetInterface(Device& _device, bool _unnumbered):
-device(_device), macAddress(publicMACCounter += 1), unnumbered(_unnumbered) {
+EthernetInterface::EthernetInterface(Device& _device, bool isUnnumbered):
+device(_device), macAddress(publicMACCounter += 1), unnumbered(isUnnumbered) {
 }
 
 EthernetInterface::~EthernetInterface() {
@@ -23,13 +23,19 @@ EthernetInterface::~EthernetInterface() {
         link->disconnect();
 }   
 
-bool EthernetInterface::connect(EthernetInterface* _link) {
-    link = _link;
+bool EthernetInterface::connect(EthernetInterface* other) {
+    if (link != nullptr)
+        disconnect();
+
+    link = other;
     link->link = this;
     return true;
 }
 
 bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
+    if (!device.getState())
+        return false;
+
     if (add.isMulticastAddress())
         throw std::invalid_argument("Interface was assigned a multicast address.");
     if (add == add.getBroadcastAddress())
@@ -44,19 +50,22 @@ bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
     return true;
 }
 
-bool EthernetInterface::setMacAddress(const MACAddress& _macAddress) {
-    if (_macAddress.isMulticast())
+bool EthernetInterface::setMacAddress(const MACAddress& newMacAddress) {
+    if (!device.getState())
+        return false;
+    
+    if (newMacAddress.isMulticast())
         throw std::invalid_argument("Interface was assigned a multicast MAC address.");
 
-    macAddress = _macAddress;
+    macAddress = newMacAddress;
     return true;
 }
 
-bool EthernetInterface::setSpeed(unsigned long _speed) {
-    if (_speed < REGULAR_ETHERNET)
+bool EthernetInterface::setSpeed(unsigned long newSpeed) {
+    if (newSpeed < REGULAR_ETHERNET)
         throw std::invalid_argument("Speed cannot be lower than regular ethernet.");
 
-    speed = _speed;
+    speed = newSpeed;
     return true;
 }
 

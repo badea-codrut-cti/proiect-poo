@@ -28,37 +28,37 @@ uint8_t NetworkAdapter::getIntefaceIndex(const MACAddress& mac) const {
     throw std::out_of_range("Index out of range");
 }
 
-uint8_t NetworkAdapter::getIntefaceIndex(const IPv4Address& add) const {
+uint8_t NetworkAdapter::getIntefaceIndex(const IPv4Address& other) const {
     for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress() == add)
+        if (interfaces[i]->getAddress() == other)
             return i;
     throw std::out_of_range("Index out of range");
 }
 
-uint8_t NetworkAdapter::findInSubnet(const IPv4Address& add) const {
+uint8_t NetworkAdapter::findInSubnet(const IPv4Address& other) const {
     for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress().isInSameSubnet(add))
+        if (interfaces[i]->getAddress().isInSameSubnet(other))
             return i;
     throw std::out_of_range("Index out of range");
 }
 
-bool NetworkAdapter::findInterface(const MACAddress& add) const {
+bool NetworkAdapter::hasInterface(const MACAddress& other) const {
     for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getMacAddress() == add)
+        if (interfaces[i]->getMacAddress() == other)
             return true;
     return false;
 }
 
-bool NetworkAdapter::findInterface(const IPv4Address& add) const {
+bool NetworkAdapter::hasInterface(const IPv4Address& other) const {
     for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress() == add)
+        if (interfaces[i]->getAddress() == other)
             return true;
     return false;
 }
 
-bool NetworkAdapter::hasInterfaceInSubnet(const IPv4Address& add) const {
+bool NetworkAdapter::hasInterfaceInSubnet(const IPv4Address& other) const {
     for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress().isInSameSubnet(add))
+        if (interfaces[i]->getAddress().isInSameSubnet(other))
             return true;
 
     return false;

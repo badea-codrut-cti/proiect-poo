@@ -8,12 +8,12 @@ Router::Router(): Device(ROUTER_INT_COUNT, false, DEFAULT_ROUTER_HOSTNAME) {
         adapter[i].setSpeed(1000);
 }
 
-IPv4Address Router::findRoute(const IPv4Address& add) {
-    if (adapter.hasInterfaceInSubnet(add))
-        return add;
+IPv4Address Router::findRoute(const IPv4Address& dest) {
+    if (adapter.hasInterfaceInSubnet(dest))
+        return dest;
 
     for (const auto& route: routes) {
-        if (!route.first.isInSameSubnet(add)) 
+        if (!route.first.isInSameSubnet(dest)) 
             continue;
         
         return findRoute(route.second);
@@ -26,7 +26,7 @@ bool Router::interfaceCallback(DataLinkLayer& data, [[maybe_unused]] uint8_t fIn
     try {
         auto frame = dynamic_cast<NetworkLayer&>(data);
 
-        if (!adapter.findInterface(data.getMACDestination()))
+        if (!adapter.hasInterface(data.getMACDestination()))
             return false;
         
         if (!frame.getTTL())
@@ -36,12 +36,10 @@ bool Router::interfaceCallback(DataLinkLayer& data, [[maybe_unused]] uint8_t fIn
         if (dest == "127.0.0.1")
             return false;
 
-
         sendARPRequest(dest, false);  
 
         DataLinkLayer l2copy(data.getMACDestination(), getArpEntryOrBroadcast(dest), data.getPayload(), data.getL2Type());
-        NetworkLayer l3copy(l2copy, frame.getIPSource(), frame.getIPDestination(), frame.getTTL());
-
+        NetworkLayer l3copy(l2copy, frame.getIPSource(), frame.getIPDestination(), frame.getTTL()-1);
         
         return adapter[adapter.findInSubnet(dest)].sendData(l3copy);
     } catch ([[maybe_unused]] std::bad_cast& e) {
