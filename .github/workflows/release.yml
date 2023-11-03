@@ -44,9 +44,9 @@ jobs:
             cmake_generator: Ninja
 
           - os: macos-12
-            c: gcc-12
-            cxx: g++-12
-            name: "macOS 12 GCC 12"
+            c: clang
+            cxx: clang++
+            name: "macOS 12 Clang"
 
           - os: windows-2022
             c: gcc
