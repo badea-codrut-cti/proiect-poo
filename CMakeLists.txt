@@ -85,11 +85,24 @@ endfunction()
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp" "src/**/*.cpp")
 
+file(GLOB_RECURSE ASSET_FILES "assets/*")
+foreach(FILE ${ASSET_FILES})
+  get_filename_component(FILE_WE ${FILE} NAME)
+  file(RELATIVE_PATH RELATIVE_FILE ${CMAKE_SOURCE_DIR} ${FILE})
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
+    COMMAND xxd -i ${RELATIVE_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
+    DEPENDS ${FILE}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+  list(APPEND GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h)
+endforeach()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     file(GLOB_RECURSE ${PROJECT_NAME}_EXAMPLES "examples/*.cpp" "examples/**/*.cpp")
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_EXAMPLES})
 else()
-    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} main.cpp)
+    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${GENERATED_HEADERS} main.cpp)
 endif()
 
 ###############################################################################
@@ -109,6 +122,7 @@ endif()
 
 # custom compiler flags
 message("Compiler: ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
+
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive- /wd4244 /wd4267 /wd4996 /external:anglebrackets /external:W0)
 else()
