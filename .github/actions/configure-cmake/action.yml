@@ -14,7 +14,7 @@ runs:
   steps:
     # This might fix the windows errors when cache is not found
     - name: Create directories
-      run: mkdir -p ${{ env.BUILD_DIR }}/_deps ${{ env.BUILD_DIR }}/.ninja_deps ${{ env.BUILD_DIR }}/.ninja_log
+      run: mkdir -p ${{ env.BUILD_DIR }} ${{ env.BUILD_DIR }}/_deps ${{ env.BUILD_DIR }}/.ninja_deps ${{ env.BUILD_DIR }}/.ninja_log
       shell: bash
     - name: Cache deps
       uses: actions/cache@v3
