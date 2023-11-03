@@ -88,8 +88,8 @@ jobs:
           mkdir libs\webview2
           curl -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -o temp.zip
           unzip temp.zip -d libs\\webview2
-          del temp.zip
-          copy /Y libs\webview2\build\native\x64\WebView2Loader.dll ${BUILD_DIR}
+          rm temp.zip
+          cp libs\webview2\build\native\x64\WebView2Loader.dll ${BUILD_DIR}
 
       - name: Install ninja (Windows)
         if: runner.os == 'Windows'
