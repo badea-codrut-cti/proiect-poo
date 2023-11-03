@@ -94,7 +94,7 @@ jobs:
       - name: Install ninja (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install ninja
+          choco install ninja xxd
 
       - name: Cache tools
         uses: actions/cache@v3

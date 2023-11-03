@@ -12,6 +12,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Cache deps
+      uses: actions/cache@v3
+      id: cache-deps
+      with:
+        path: |
+          ${{ env.BUILD_DIR }}/_deps
+        key: cache-${{ matrix.cmake_generator }}-${{ matrix.os }}-${{ env.CXX }}-${{ env.BUILD_TYPE }}
     - name: Cache Ninja deps
       uses: actions/cache@v3
       if: matrix.cmake_generator == 'Ninja'
