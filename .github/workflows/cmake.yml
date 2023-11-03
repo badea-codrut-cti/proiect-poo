@@ -195,13 +195,6 @@ jobs:
           # sudo apt-get update
           sudo apt-get install --no-install-recommends libc++-14-dev libc++abi-14-dev
 
-      - name: Installing Webview2 DLL (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          mkdir libs\webview2
-          curl -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" | unzip - -d libs\webview2
-          copy /Y libs\webview2\build\native\x64\WebView2Loader.dll ${BUILD_DIR}
-
       - name: Install ninja (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -345,28 +338,3 @@ jobs:
               --leak-check=full --show-leak-kinds=all --track-origins=yes \
               --error-exitcode=1 \
               ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}"
-
-      - name: Set Tag Name
-        if: startsWith(github.ref, 'refs/tags/')
-        # trim prefix from ref to get tag name
-        run: echo "TAG_NAME=${GITHUB_REF#'refs/tags/'}" >> ${GITHUB_ENV}
-
-      - name: Add tag to folder name
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          mv ${{ env.ZIP_NAME }} ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}
-
-      - name: Archive Release
-        uses: thedoctor0/zip-release@master
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          type: 'zip'
-          path: ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}
-          filename: ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}.zip
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}.zip

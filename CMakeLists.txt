@@ -120,8 +120,12 @@ target_compile_options(${PROJECT_NAME} PRIVATE -g)
 
 # sanitizers
 set_custom_stdlib_and_sanitizers(${PROJECT_NAME} true)
-
-if (UNIX)
+if(APPLE)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
+    include_directories(${WEBKIT2GTK4_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${GTK3_LIBRARIES} ${WEBKIT2GTK4_LIBRARIES})
+elseif (UNIX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
     pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
