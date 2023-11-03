@@ -12,19 +12,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Uncomment when using external dependencies so they will be cached
-    # - name: Cache deps
-    #   uses: actions/cache@v3
-    #   id: cache-deps
-    #   # make the key depend on the dependency version
-    #   with:
-    #     path: |
-    #       ${{ env.BUILD_DIR }}/_deps
-    #     key: cache-${{ matrix.cmake_generator }}-${{ matrix.os }}-${{ env.CXX }}-${{ env.BUILD_TYPE }}
-
-    # NOTE: GH Actions does not allow updating the cache yet
-    # Using the workaround found here: https://github.com/actions/cache/issues/171
-    # Since this cache is small, it should not fill the cache too much
     - name: Cache Ninja deps
       uses: actions/cache@v3
       if: matrix.cmake_generator == 'Ninja'
@@ -44,6 +31,3 @@ runs:
             -DWARNINGS_AS_ERRORS=${{ inputs.warnings_as_errors }} \
             ${{ inputs.custom_flags }}
       shell: bash
-
-# https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
-# https://github.com/GuillaumeFalourd/poc-github-actions/blob/main/.github/workflows/36-local-action.yml

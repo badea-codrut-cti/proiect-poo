@@ -11,7 +11,15 @@ fi
 mkdir build
 
 cd build
-cmake ..
-cmake --build . --config Debug
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+cmake --build .
+
+ASAN_OPTIONS=detect_leaks=1
+MSAN_OPTIONS=halt_on_error=1 
+
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./autodragan
+
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
 
 ./autodragan

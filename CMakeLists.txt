@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-# NOTE: update executable name in .github/workflows/cmake.yml:25 when changing executable name in this file
-# for now, the project name is used as the executable name
 project(autodragan)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -14,15 +12,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "install_dir" CACHE PATH "..." FORCE)
 endif()
 
-# disable sanitizers when releasing executables without explicitly requested debug info
-# use generator expressions to set flags correctly in both single and multi config generators
 set(is_debug "$<CONFIG:Debug>")
 set(is_rel_with_deb "$<CONFIG:RelWithDebInfo>")
 set(debug_mode "$<OR:${is_debug},${is_rel_with_deb}>")
 
-###############################################################################
-
-# custom functions
 
 function(set_custom_stdlib_and_sanitizers target add_apple_asan)
     if(MSVC)
@@ -91,7 +84,13 @@ endfunction()
 
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp" "src/**/*.cpp")
-add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} main.cpp)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    file(GLOB_RECURSE ${PROJECT_NAME}_EXAMPLES "examples/*.cpp" "examples/**/*.cpp")
+    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_EXAMPLES})
+else()
+    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} main.cpp)
+endif()
 
 ###############################################################################
 
@@ -132,7 +131,10 @@ elseif (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE -mwindows -Ilibs/webview -Ilibs/webview2/build/native/include -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion)
 endif()
 
-
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # webview is currently using deprecated functions from webkitgtk-4.0
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+endif()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ext/webview)
 
 ###############################################################################

@@ -2,16 +2,16 @@ name: C++ CI
 
 on:
   push:
-    branches: ['*'] # NOTE: replace/update with appropriate branch name(s)
+    branches: ['main'] 
     tags: ['*']
   pull_request:
-    branches: ['*'] # NOTE: replace/update with appropriate branch name(s)
+    branches: ['main'] 
   workflow_dispatch:
     inputs:
       build_type:
         description: Build type
         required: false
-        default: 'Debug'
+        default: 'MinSizeRel'
         type: choice
         options:
           - Debug
@@ -21,9 +21,7 @@ on:
 
 env:
   BUILD_TYPE: ${{ inputs.build_type || 'Debug' }}
-  # NOTE: update executable name if it is changed in CMakeLists.txt
   EXECUTABLE_NAME: "autodragan"
-  INPUT_FILENAME: "tastatura.txt"
   BUILD_DIR: "build"
   EXT_DIR: "ext"
   BIN_DIR: "bin"
@@ -46,7 +44,7 @@ jobs:
       - name: Install cppcheck
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends cppcheck
+          sudo apt-get install --no-install-recommends cppcheck libgtk-3-dev libwebkit2gtk-4.0-dev xxd
 
       # The flag CMAKE_EXPORT_COMPILE_COMMANDS generates compile_commands.json
       # which is used by cppcheck and clang-tidy
@@ -80,7 +78,7 @@ jobs:
       - name: Install clang-tidy
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends clang-tidy
+          sudo apt-get install --no-install-recommends clang-tidy libgtk-3-dev libwebkit2gtk-4.0-dev xxd
 
       - name: Configure CMake
         uses: ./.github/actions/configure-cmake
@@ -188,7 +186,7 @@ jobs:
           echo "TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)" >> ${GITHUB_ENV}
 
           # use the full name as prefix: {user_name}_{repo_name} (replace / with _)
-          echo "ZIP_NAME=$(echo "${GITHUB_REPOSITORY}_${{ env.BUILD_TYPE }}_${{ matrix.os }}_${{ matrix.cxx }}" | sed 's|/|_|')" >> ${GITHUB_ENV}
+          echo "ZIP_NAME=$(echo "${EXECUTABLE_NAME}_${{ env.BUILD_TYPE }}_${{ matrix.os }}_${{ matrix.cxx }}" | sed 's|/|_|')" >> ${GITHUB_ENV}
 
           # or use only the repo name (github does not have a predefined environment variable for this)
           # the regex splits by / and keeps everything after / without the / character
@@ -199,7 +197,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install ninja-build
+          sudo apt-get install ninja-build libgtk-3-dev libwebkit2gtk-4.0-dev xxd
 
       - name: Install libc++ (Linux Clang 14)
         if: runner.os == 'Linux' && matrix.runs_msan == true
@@ -207,16 +205,11 @@ jobs:
           # sudo apt-get update
           sudo apt-get install --no-install-recommends libc++-14-dev libc++abi-14-dev
 
-      - name: Installing LibGTK and Webkit (Linux)
-        if: runner.os == 'Linux'
-        run: | 
-          sudo apt-get install  --no-install-recommends libgtk-3-dev libwebkit2gtk-4.0-dev 
-
       - name: Installing Webview2 DLL (Windows)
         if: runner.os == 'Windows'
         run: |
           mkdir libs\webview2
-          curl -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" | tar -xf - -C libs\webview2
+          curl -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" | unzip - -d libs\webview2
           copy /Y libs\webview2\build\native\x64\WebView2Loader.dll ${BUILD_DIR}
 
       - name: Install ninja (Windows)
@@ -257,7 +250,6 @@ jobs:
           mkdir ${{ env.ZIP_NAME }}
           mv artifacts/${{ env.BIN_DIR }}/* ${{ env.ZIP_NAME }}
           ls -la ${{ env.ZIP_NAME }}
-          cp "${INPUT_FILENAME}" ${{ env.ZIP_NAME }}
 
       - name: Copy missing dylibs
         if: runner.os == 'macOS' && matrix.cxx == 'clang++'
@@ -331,7 +323,7 @@ jobs:
           sudo ln -s -f /usr/bin/$CC /usr/bin/clang
           sudo ln -s -f /usr/bin/$CXX /usr/bin/clang++
           cmake -GNinja ../llvm \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DLLVM_ENABLE_PROJECTS="libcxx;libcxxabi" \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
@@ -346,20 +338,20 @@ jobs:
         # env:
         #   ASAN_OPTIONS: detect_leaks=1
         run: |
-          cat "${INPUT_FILENAME}" | tr -d '\r' | ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}"
+          ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}"
 
       - name: Sanitizers (Windows MSVC)
         # run one sanitizer for each OS to avoid building extra binaries
         if: matrix.cxx == 'cl' && matrix.runs_asan == true
         continue-on-error: true
         run: |
-          cat "${INPUT_FILENAME}" | ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}".exe
+          ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}".exe
 
       - name: Valgrind
         if: runner.os == 'Linux' && matrix.runs_valgrind == true
         run: |
           # remove --show-leak-kinds=all (and --track-origins=yes) if there are many leaks in external libs
-          cat "${INPUT_FILENAME}" | tr -d '\r' | valgrind \
+          valgrind \
               --leak-check=full --show-leak-kinds=all --track-origins=yes \
               --error-exitcode=1 \
               ./${{ env.ZIP_NAME }}/"${EXECUTABLE_NAME}"
