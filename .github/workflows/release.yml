@@ -6,6 +6,8 @@ on:
     tags: ['*']
   pull_request:
     branches: ['main'] 
+  workflow_dispatch:
+    
 
 env:
   BUILD_TYPE: "MinSizeRel"
@@ -179,7 +181,7 @@ jobs:
           name: ${{ env.ZIP_NAME }}_${{ env.TIMESTAMP }}
           path: ${{ env.ZIP_NAME }}
           retention-days: 30
-          
+
       - name: Set Tag Name
         if: startsWith(github.ref, 'refs/tags/')
         # trim prefix from ref to get tag name
