@@ -85,23 +85,22 @@ endfunction()
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp" "src/**/*.cpp")
 
-file(GLOB_RECURSE ASSET_FILES "assets/*")
-foreach(FILE ${ASSET_FILES})
-  get_filename_component(FILE_WE ${FILE} NAME)
-  file(RELATIVE_PATH RELATIVE_FILE ${CMAKE_SOURCE_DIR} ${FILE})
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
-    COMMAND xxd -i ${RELATIVE_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
-    DEPENDS ${FILE}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  )
-  list(APPEND GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h)
-endforeach()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     file(GLOB_RECURSE ${PROJECT_NAME}_EXAMPLES "examples/*.cpp" "examples/**/*.cpp")
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_EXAMPLES})
 else()
+    file(GLOB_RECURSE ASSET_FILES "assets/*")
+    foreach(FILE ${ASSET_FILES})
+    get_filename_component(FILE_WE ${FILE} NAME)
+    file(RELATIVE_PATH RELATIVE_FILE ${CMAKE_SOURCE_DIR} ${FILE})
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
+        COMMAND xxd -i ${RELATIVE_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
+        DEPENDS ${FILE}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    list(APPEND GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h)
+    endforeach()
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${GENERATED_HEADERS} main.cpp)
 endif()
 
@@ -134,19 +133,18 @@ target_compile_options(${PROJECT_NAME} PRIVATE -g)
 
 # sanitizers
 set_custom_stdlib_and_sanitizers(${PROJECT_NAME} true)
-if(APPLE)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
-    include_directories(${WEBKIT2GTK4_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} ${GTK3_LIBRARIES} ${WEBKIT2GTK4_LIBRARIES})
-elseif (UNIX)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-    pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
-    include_directories(${GTK3_INCLUDE_DIRS} ${WEBKIT2GTK4_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} ${GTK3_LIBRARIES} ${WEBKIT2GTK4_LIBRARIES})
-elseif (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE -mwindows -Ilibs/webview -Ilibs/webview2/build/native/include -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(APPLE)
+        target_compile_options(${PROJECT_NAME} PRIVATE -framework WebKit)
+    elseif (UNIX)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+        pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
+        include_directories(${GTK3_INCLUDE_DIRS} ${WEBKIT2GTK4_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} ${GTK3_LIBRARIES} ${WEBKIT2GTK4_LIBRARIES})
+    elseif (MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE -mwindows -Ilibs/webview -Ilibs/webview2/build/native/include -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion)
+    endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
