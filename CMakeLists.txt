@@ -134,7 +134,10 @@ target_compile_options(${PROJECT_NAME} PRIVATE -g)
 # sanitizers
 set_custom_stdlib_and_sanitizers(${PROJECT_NAME} true)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if (UNIX)
+    if(APPLE)
+        # oops, apple is also unix
+        target_link_libraries(${PROJECT_NAME} "-framework WebKit")
+    elseif (UNIX)
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
         pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
@@ -145,11 +148,7 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     endif()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # webview is currently using deprecated functions from webkitgtk-4.0
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-endif()
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ext/webview)
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ./ext/webview)
 
 ###############################################################################
 

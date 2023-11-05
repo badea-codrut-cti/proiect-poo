@@ -1,6 +1,6 @@
 #include <cstring>
 #include <iostream>
-#include "./ext/webview/webview.h"
+#include <webview.h>
 #include "./build/index.html.h"
 #include <string>
 
