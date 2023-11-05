@@ -1,5 +1,6 @@
 #include "../ipv4.h"
 #include "./datalink.h"
+#include <iostream>
 
 #ifndef NETWORKLAYER_H
 #define NETWORKLAYER_H
