@@ -2,13 +2,9 @@ name: C++ CI
 
 on:
   push:
-    branches: ['*'] 
     tags: ['*']
-  pull_request:
-    branches: ['*'] 
   workflow_dispatch:
     
-
 env:
   BUILD_TYPE: "MinSizeRel"
   EXECUTABLE_NAME: "autodragan"
@@ -18,7 +14,6 @@ env:
 
 defaults:
   run:
-
     shell: bash
 
 jobs:
