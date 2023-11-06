@@ -1,0 +1,206 @@
+name: C++ CI
+
+on:
+  push:
+    tags: ['*']
+  workflow_dispatch:
+    
+env:
+  BUILD_TYPE: "MinSizeRel"
+  EXECUTABLE_NAME: "autodragan"
+  BUILD_DIR: "build"
+  EXT_DIR: "ext"
+  BIN_DIR: "bin"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    env:
+      CC: ${{ matrix.c }}
+      CXX: ${{ matrix.cxx }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            c: gcc-12
+            cxx: g++-12
+            name: "Ubuntu 22.04 GCC 12"
+            cmake_generator: Ninja
+
+          - os: macos-12
+            c: clang
+            cxx: clang++
+            name: "macOS 12 Clang 14"
+
+          - os: windows-2022
+            c: gcc
+            cxx: g++
+            name: "Windows 2022 MinGW GCC 11"
+            cmake_generator: Ninja
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Prepare env
+        run: |
+          echo ${GITHUB_WORKSPACE}
+          mkdir ${GITHUB_WORKSPACE}/artifacts
+
+      - name: Set timestamp and zip name
+        run: |
+          echo "TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)" >> ${GITHUB_ENV}
+
+          # use the full name as prefix: {user_name}_{repo_name} (replace / with _)
+          echo "ZIP_NAME=$(echo "${EXECUTABLE_NAME}_${{ env.BUILD_TYPE }}_${{ matrix.os }}_${{ matrix.cxx }}" | sed 's|/|_|')" >> ${GITHUB_ENV}
+
+          # or use only the repo name (github does not have a predefined environment variable for this)
+          # the regex splits by / and keeps everything after / without the / character
+          # echo "ZIP_NAME=$(echo "${GITHUB_REPOSITORY}_${{ env.BUILD_TYPE }}_${{ matrix.os }}_${{ matrix.cxx }}" | sed -E 's|.+/(.+)|\1|')" >> ${GITHUB_ENV}
+
+      # Common Linux dependencies
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build libgtk-3-dev libwebkit2gtk-4.0-dev xxd
+      
+      - name: Installing Webview2 DLL (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir libs
+          mkdir libs/webview2
+          curl -sSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2" -o temp.zip
+          unzip temp.zip -d libs\\webview2
+          rm temp.zip
+          cp libs/webview2/build/native/x64/WebView2Loader.dll "${BUILD_DIR}"
+
+      - name: Install ninja (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install ninja xxd
+
+      - name: Cache tools
+        uses: actions/cache@v3
+        if: runner.os == 'Linux' && matrix.runs_msan == true
+        id: cache-tools
+        with:
+          path: tools
+          key: tools-clang-stdlib-msan
+
+      - name: Configure CMake
+        uses: ./.github/actions/configure-cmake
+        with:
+          custom_flags: ${{ matrix.cmake_flags }}
+          warnings_as_errors: 'ON'
+
+      - name: Build
+        # Execute the build using N jobs (-jN)
+        run: cmake --build "${BUILD_DIR}" --config ${BUILD_TYPE} -j6
+
+      - name: Install
+        # Use CMake to "install" build artifacts (only interested in CMake registered targets) to our custom artifacts directory
+        run: cmake --install "${BUILD_DIR}" --config ${BUILD_TYPE} --prefix artifacts
+
+      - name: Move artifacts
+        run: |
+          mkdir ${{ env.ZIP_NAME }}
+          mv artifacts/${{ env.BIN_DIR }}/* ${{ env.ZIP_NAME }}
+          ls -la ${{ env.ZIP_NAME }}
+
+      - name: Copy missing dylibs
+        if: runner.os == 'macOS' && matrix.cxx == 'clang++'
+        run: |
+          mkdir lib
+          cp /Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib lib
+          install_name_tool -change @rpath/libclang_rt.asan_osx_dynamic.dylib @executable_path/lib/libclang_rt.asan_osx_dynamic.dylib ${{ env.ZIP_NAME }}/${{ env.EXECUTABLE_NAME }}
+          mv lib ${{ env.ZIP_NAME }}/
+
+      - name: Copy missing dylibs (g++)
+        if: runner.os == 'macOS' && startsWith(matrix.cxx, 'g++')
+        run: |
+          mkdir lib
+          cp /usr/local/opt/gcc@12/lib/gcc/12/libstdc++.6.dylib /usr/local/opt/gcc@12/lib/gcc/12/libgcc_s.1.1.dylib lib
+          install_name_tool -change /usr/local/opt/gcc@12/lib/gcc/12/libstdc++.6.dylib @executable_path/lib/libstdc++.6.dylib ${{ env.ZIP_NAME }}/${{ env.EXECUTABLE_NAME }}
+          install_name_tool -change /usr/local/opt/gcc@12/lib/gcc/12/libgcc_s.1.1.dylib @executable_path/lib/libgcc_s.1.1.dylib ${{ env.ZIP_NAME }}/${{ env.EXECUTABLE_NAME }}
+          mv lib ${{ env.ZIP_NAME }}/
+
+      - name: Copy missing dlls
+        if: runner.os == 'Windows' && matrix.cxx == 'cl'
+        run: |
+          if [[ "${BUILD_TYPE}" =~ "Deb" ]]; then
+            # runtime debug DLLs
+            cp "$(which ucrtbased.dll)" \
+               "$(which VCRUNTIME140_1D.dll)" \
+               "$(which MSVCP140D.dll)" \
+               "$(which VCRUNTIME140D.dll)" \
+               ${GITHUB_WORKSPACE}/${{ env.ZIP_NAME }}
+
+            # sanitizers DLLs
+            vcver=$(cat "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt")
+            vcbindir="C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/${vcver}/bin/Hostx64/x64/"
+            cp "${vcbindir}/clang_rt.asan_dynamic-x86_64.dll" \
+               "${vcbindir}/clang_rt.asan_dbg_dynamic-x86_64.dll" \
+               ${GITHUB_WORKSPACE}/${{ env.ZIP_NAME }}
+          fi
+
+          # runtime release DLLs
+          if [[ "${BUILD_TYPE}" =~ "Rel" ]]; then
+            cp "$(which ucrtbase.dll)" \
+               "$(which VCRUNTIME140_1.dll)" \
+               "$(which MSVCP140.dll)" \
+               "$(which VCRUNTIME140.dll)" \
+               ${GITHUB_WORKSPACE}/${{ env.ZIP_NAME }}
+          fi
+
+      - name: Copy stdlib (MinGW)
+        if: runner.os == 'Windows' && matrix.cxx == 'g++'
+        # static linking might not work with MinGW, might be easier this way
+        run: |
+          cp $(which libstdc++-6.dll) \
+            $(which libgcc_s_seh-1.dll) \
+            $(which libwinpthread-1.dll) \
+            ${GITHUB_WORKSPACE}/${{ env.ZIP_NAME }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ZIP_NAME }}_${{ env.TIMESTAMP }}
+          path: ${{ env.ZIP_NAME }}
+          retention-days: 30
+
+      - name: Set Tag Name
+        if: startsWith(github.ref, 'refs/tags/')
+        # trim prefix from ref to get tag name
+        run: echo "TAG_NAME=${GITHUB_REF#'refs/tags/'}" >> ${GITHUB_ENV}
+
+      - name: Add tag to folder name
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mv ${{ env.ZIP_NAME }} ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}
+
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          type: 'zip'
+          path: ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}
+          filename: ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ${{ env.ZIP_NAME }}_${{ env.TAG_NAME }}.zip

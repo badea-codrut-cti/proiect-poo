@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-# NOTE: update executable name in .github/workflows/cmake.yml:25 when changing executable name in this file
-# for now, the project name is used as the executable name
 project(autodragan)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -14,15 +12,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "install_dir" CACHE PATH "..." FORCE)
 endif()
 
-# disable sanitizers when releasing executables without explicitly requested debug info
-# use generator expressions to set flags correctly in both single and multi config generators
 set(is_debug "$<CONFIG:Debug>")
 set(is_rel_with_deb "$<CONFIG:RelWithDebInfo>")
 set(debug_mode "$<OR:${is_debug},${is_rel_with_deb}>")
 
-###############################################################################
-
-# custom functions
 
 function(set_custom_stdlib_and_sanitizers target add_apple_asan)
     if(MSVC)
@@ -91,7 +84,25 @@ endfunction()
 
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp" "src/**/*.cpp")
-add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} main.cpp)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    file(GLOB_RECURSE ${PROJECT_NAME}_EXAMPLES "examples/*.cpp" "examples/**/*.cpp")
+    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_EXAMPLES})
+else()
+    file(GLOB_RECURSE ASSET_FILES "assets/*")
+    foreach(FILE ${ASSET_FILES})
+    get_filename_component(FILE_WE ${FILE} NAME)
+    file(RELATIVE_PATH RELATIVE_FILE ${CMAKE_SOURCE_DIR} ${FILE})
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
+        COMMAND xxd -i ${RELATIVE_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
+        DEPENDS ${FILE}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    list(APPEND GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h)
+    endforeach()
+    add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${GENERATED_HEADERS} main.cpp)
+endif()
 
 ###############################################################################
 
@@ -110,6 +121,7 @@ endif()
 
 # custom compiler flags
 message("Compiler: ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
+
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive- /wd4244 /wd4267 /wd4996 /external:anglebrackets /external:W0)
 else()
@@ -121,11 +133,26 @@ target_compile_options(${PROJECT_NAME} PRIVATE -g)
 
 # sanitizers
 set_custom_stdlib_and_sanitizers(${PROJECT_NAME} true)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(APPLE)
+        # oops, apple is also unix
+        target_link_libraries(${PROJECT_NAME} "-framework WebKit")
+    elseif (UNIX)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+        pkg_check_modules(WEBKIT2GTK4 REQUIRED webkit2gtk-4.0)
+        include_directories(${GTK3_INCLUDE_DIRS} ${WEBKIT2GTK4_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} ${GTK3_LIBRARIES} ${WEBKIT2GTK4_LIBRARIES})
+    elseif (MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE -mwindows -Ilibs/webview2/build/native/include -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion)
+    endif()
+endif()
+
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ./ext/webview)
 
 ###############################################################################
 
 # use SYSTEM so cppcheck/clang-tidy does not report warnings from these directories
-# target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ext/<SomeHppLib>/include)
 # target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)
 # target_link_directories(${PROJECT_NAME} PRIVATE ${<SomeLib>_BINARY_DIR}/lib)
 # target_link_libraries(${PROJECT_NAME} <SomeLib>)

@@ -1,32 +1,25 @@
 #!/bin/bash
 
+for i in "src/" "examples/"
+do
+  cppcheck --enable=all --std=c++11 --check-config --suppress=missingIncludeSystem $i
+done
+
 if [ -d "build" ]; then
   rm -rf build
 fi
 mkdir build
 
 cd build
-cmake ..
-cmake --build . --config Debug
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+cmake --build .
 
-ASAN_OPTIONS=detect_leaks=1 ./autodragan
+ASAN_OPTIONS=detect_leaks=1
+MSAN_OPTIONS=halt_on_error=1 
 
-cd ..
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./autodragan
 
-for i in "src/" "examples/"
-do
-  cppcheck --enable=all --std=c++11 --check-config --suppress=missingIncludeSystem $i
-done
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
 
-cd build
-cmake ..
-cmake --build . --config Debug
-
-MSAN_OPTIONS=halt_on_error=1 ./autodragan
-
-cd ..
-valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./build/autodragan
-
-echo "==========================================="
-
-./build/autodragan
+./autodragan

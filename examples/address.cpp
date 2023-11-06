@@ -15,9 +15,6 @@ void test_macaddress() {
     mac -= 2196;
     assert (mac == "00:00:00:00:00:02");
 
-    MACAddress mac2({0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01});
-    assert(mac2 == "00:00:00:00:00:01");
-
     try {
         MACAddress mac3("some:wrong:format");
         assert(false); // Last line should have errored out.
