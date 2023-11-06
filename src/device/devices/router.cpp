@@ -46,8 +46,6 @@ bool Router::interfaceCallback(DataLinkLayer& data, [[maybe_unused]] uint8_t fIn
         // Avem de a face cu trafic L2 
         return false;
     }
-    
-    return false;
 }   
 
 bool Router::addStaticRoute(const SubnetAddress& subnet, const IPv4Address& ip) {
