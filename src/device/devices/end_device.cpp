@@ -1,6 +1,13 @@
 #include "./end_device.h"
 #include "../../date/osi/network.h"
 
+EndDevice::EndDevice(): Device() {}
+
+EndDevice::EndDevice(const EndDevice& other):
+Device(other), defaultGateway(other.defaultGateway) {
+
+}
+
 bool EndDevice::setIpAddress(const SubnetAddress& add) {
     return adapter[0].setIpAddress(add);
 }
@@ -39,4 +46,12 @@ SubnetAddress EndDevice::getAddress() const {
 
 IPv4Address EndDevice::getDefaultGateway() const {
     return defaultGateway;
+}
+
+EndDevice::operator EthernetInterface&() {
+    return adapter[0];
+}
+
+Device* EndDevice::clone() {
+    return new EndDevice(*this);
 }

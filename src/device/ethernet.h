@@ -57,6 +57,8 @@ class EthernetInterface {
 
         [[nodiscard]] SubnetAddress getAddress() const;
 
+        [[nodiscard]] bool isUnnumbered() const;
+
         friend std::ostream& operator<<(std::ostream&, const EthernetInterface&);
 };
 

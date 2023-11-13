@@ -109,6 +109,10 @@ SubnetAddress EthernetInterface::getAddress() const {
     return address;
 }
 
+bool EthernetInterface::isUnnumbered() const {
+    return unnumbered;
+}
+
 std::ostream& operator<<(std::ostream& os, const EthernetInterface& ip) {
     os << "mac-address " << ip.macAddress << "\r\n";
     os << "ip address " << ((IPv4Address)ip.address) << " " << ip.address.getMaskDotNotation() << "\r\n";

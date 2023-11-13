@@ -6,8 +6,8 @@
 #include <utility>
 #include <iostream>
 
-Device::Device(uint8_t interfaceCount, bool unnumbered, std::string _hostname): 
-adapter(*this, interfaceCount, unnumbered), hostname(std::move(_hostname)) {
+Device::Device(uint8_t interfaceCount, bool unnumbered, std::string hostname): 
+adapter(*this, interfaceCount, unnumbered), hostname(std::move(hostname)) {
 
 }
 
@@ -123,6 +123,21 @@ const NetworkAdapter& Device::getNetworkAdapter() const {
 
 const std::string& Device::getHostname() const {
     return hostname;
+}
+
+Device::Device(const Device& other):
+isOn(other.isOn), 
+adapter(*this, other.adapter.interfaceCount(), other.adapter[0].isUnnumbered()),
+hostname(other.hostname) {
+    for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
+        adapter[i].setSpeed(other.adapter[i].getSpeed());
+        if (!other.adapter[i].getState())
+            adapter[i].turnOff();
+    }
+}
+
+Device* Device::clone() {
+    return new Device(*this);
 }
 
 std::ostream& operator<<(std::ostream& os, const Device& device) {

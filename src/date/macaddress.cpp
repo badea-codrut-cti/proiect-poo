@@ -39,7 +39,7 @@ std::string MACAddress::toString() const {
     std::ostringstream oss;
     for (size_t i = 0; i < octets.size(); ++i) {
         oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(octets[i]);
-        if (i < 5) {
+        if (i < MACADDRESS_SIZE-1) {
             oss << ":";
         }
     }

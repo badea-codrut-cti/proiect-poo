@@ -29,6 +29,10 @@ class Device {
     public:
         Device();
 
+        explicit Device(const Device&);
+
+        virtual ~Device() = default;
+
         virtual void turnOn();
 
         virtual void turnOff();
@@ -36,6 +40,8 @@ class Device {
         void setHostname(const std::string&);
 
         virtual bool sendARPRequest(const IPv4Address&, bool);
+
+        virtual Device* clone();
 
         [[nodiscard]] bool getState() const;
 
