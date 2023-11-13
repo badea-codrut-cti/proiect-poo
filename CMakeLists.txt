@@ -72,7 +72,11 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(json)
-FetchContent_MakeAvailable(webview)
+
+FetchContent_GetProperties(webview)
+if(NOT webview_POPULATED)
+  FetchContent_Populate(webview)
+endif()
 
 ###############################################################################
 
@@ -162,6 +166,9 @@ target_compile_options(${PROJECT_NAME} PRIVATE -g)
 set_custom_stdlib_and_sanitizers(${PROJECT_NAME} true)
 
 ###############################################################################
+
+target_link_directories(${PROJECT_NAME} PRIVATE ${webview_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
 
 # use SYSTEM so cppcheck/clang-tidy does not report warnings from these directories
 # target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)

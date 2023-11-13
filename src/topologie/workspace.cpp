@@ -1,4 +1,7 @@
 #include "workspace.h"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 Workspace::~Workspace() {
     for (Device* dev : devices)
@@ -11,7 +14,8 @@ unsigned int Workspace::addDevice(Device* dev) {
 }
 
 std::string Workspace::WDeviceAddParser(std::string str) {
-    
+    json data = json::parse(str);
+    return str;
 }
 
 Workspace Workspace::workspace{};
