@@ -1,5 +1,30 @@
 #include "./arp.h"
+#include <iomanip>
+#include <ostream>
 #include <tuple>
+
+void pipeHex(std::ostream& o, uint8_t* arr, unsigned long n) {
+    for (size_t i = 0; i < n; ++i) {
+        o << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(arr[i]);
+        if (i < n-1) {
+            o << " ";
+        }
+    }
+}
+
+void ARPPayload::print(std::ostream& o) const {
+    o << "ARP Payload\n";
+    o << "Hardware Address Length: " << hwAddLength << "\n";
+    o << "Protocol Address Length: " << protoAddLength << "\n";
+    o << "Source Hardware Address: ";
+    pipeHex(o, sourceHardwareAddress, hwAddLength);
+    o << "\nDestination Hardware Address: ";
+    pipeHex(o, destinationHardwareAddress, hwAddLength);
+    o << "\nSource Protocol Address: ";
+    pipeHex(o, sourceProtocolAddress, protoAddLength);
+    o << "\nDestination Protocol Address: ";
+    pipeHex(o, destinationProtocolAddress, protoAddLength);
+}
 
 template <std::size_t N, std::size_t M>
 ARPPayload::ARPPayload(Operation operation, 

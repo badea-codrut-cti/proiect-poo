@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <ostream>
 #include <stdexcept>
 #include "../date/ipv4.h"
 #include "../date/macaddress.h"
@@ -34,6 +35,9 @@ class ARPPayload : public L2Payload {
         uint8_t hwAddLength, protoAddLength;
         uint8_t *sourceHardwareAddress, *destinationHardwareAddress,
         *sourceProtocolAddress, *destinationProtocolAddress;
+
+    protected:
+        void print(std::ostream&) const override;
 
     public:
         template <std::size_t N, std::size_t M>
