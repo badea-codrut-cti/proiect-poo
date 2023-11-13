@@ -168,10 +168,11 @@ set_custom_stdlib_and_sanitizers(${PROJECT_NAME} true)
 ###############################################################################
 
 target_link_directories(${PROJECT_NAME} PRIVATE ${webview_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${webview_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
 
 # use SYSTEM so cppcheck/clang-tidy does not report warnings from these directories
-# target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)
+
 # target_link_directories(${PROJECT_NAME} PRIVATE ${<SomeLib>_BINARY_DIR}/lib)
 # target_link_libraries(${PROJECT_NAME} <SomeLib>)
 
