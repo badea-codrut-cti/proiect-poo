@@ -1,4 +1,5 @@
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <webview.h>
 #include "./build/index.html.h"
@@ -6,13 +7,20 @@
 
 using namespace std;
 
+std::string test(std::string a) {
+    cout << a << "\n";
+    
+    return a;
+}
+
 int main() {
-    webview_t w = webview_create(0, nullptr);
-    webview_set_title(w, PROJECT_NAME);
-    webview_set_size(w, 480, 320, WEBVIEW_HINT_NONE);
-    string content(reinterpret_cast<char*>(assets_index_html), assets_index_html_len);
-    webview_set_html(w, content.c_str());
-    webview_run(w);
-    webview_destroy(w);
+    webview::webview w(false, nullptr);
+    w.set_title("Autodragan");
+    w.set_size(800, 600, 0);
+    string content(reinterpret_cast<char*>(index_html), index_html_len);
+    w.set_html(content);
+    w.bind("ceva", std::function<std::string(std::string)>(test));
+    w.run();
     return 0;
+
 }
