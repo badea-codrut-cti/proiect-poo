@@ -18,7 +18,7 @@ runs:
       with:
         path: |
           ${{ env.BUILD_DIR }}/_deps
-        key: cache-${{ matrix.cmake_generator }}-${{ matrix.os }}-${{ env.CXX }}-${{ env.BUILD_TYPE }}
+        key: deps-${{ matrix.cmake_generator }}-${{ matrix.os }}-${{ env.CXX }}-${{ env.BUILD_TYPE }}
     - name: Cache Ninja deps
       uses: actions/cache@v3
       if: matrix.cmake_generator == 'Ninja'
