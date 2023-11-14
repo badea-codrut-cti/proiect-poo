@@ -64,4 +64,6 @@ Simulator de protocoale si topologii de retea.
 
 [L3 Protocol Numbers](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
 
+[ICMP Parameters](https://www.iana.org/assignments/icmp-parameters/icmp-parameters.xhtml)
+
 [Webview](https://github.com/webview/webview)
