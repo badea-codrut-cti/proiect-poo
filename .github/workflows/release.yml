@@ -78,18 +78,7 @@ jobs:
       - name: Install Windows Dependencies
         if: runner.os == 'Windows'
         run: |
-          choco install ninja xxd webview2-runtime
-      
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2
-        with:
-          node-version: 'lts/*'
-
-      - name: Compile the Svelte frontent
-        run: | 
-          cd ./assets
-          npm install && npm run build
-          cd ..
+          choco install ninja xxd
 
       - name: Cache tools
         uses: actions/cache@v3
@@ -99,15 +88,39 @@ jobs:
           path: tools
           key: tools-clang-stdlib-msan
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: 'lts/*'
+
+      - name: Compile the Svelte frontent
+        run: | 
+          cd assets
+          npm install && npm run build
+          cd ..
+
       - name: Configure CMake
         uses: ./.github/actions/configure-cmake
         with:
           custom_flags: ${{ matrix.cmake_flags }}
           warnings_as_errors: 'ON'
-          
+
+      - name: Configure Webview2 (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          cd %BUILD_DIR%/_deps/webview-src
+          ./script/build.bat info clean deps
+
+      - name: Copy webview files
+        if: runner.os == 'Windows'
+        run: |
+          cp ${BUILD_DIR}/_deps/webview-src/build/external/libs/Microsoft.Web.WebView*/build/native/include/* ${BUILD_DIR}/_deps/webview-src
+
       - name: Build
         # Execute the build using N jobs (-jN)
-        run: cmake --build "${BUILD_DIR}" --config ${BUILD_TYPE} -j6
+        run: |
+          cmake --build "${BUILD_DIR}" --config ${BUILD_TYPE} -j6
 
       - name: Install
         # Use CMake to "install" build artifacts (only interested in CMake registered targets) to our custom artifacts directory
