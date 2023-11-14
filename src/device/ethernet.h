@@ -21,7 +21,7 @@ class EthernetInterface {
         MACAddress macAddress;
         bool isOn{true}, unnumbered;
 
-        bool receiveData(DataLinkLayer&);
+        bool receiveData(const DataLinkLayer&);
 
         unsigned long speed{FAST_ETHERNET}, bandwidth{FAST_ETHERNET};
 
@@ -45,7 +45,7 @@ class EthernetInterface {
         
         bool turnOff();
 
-        bool sendData(DataLinkLayer&);
+        bool sendData(const DataLinkLayer&);
 
         bool disconnect();
 

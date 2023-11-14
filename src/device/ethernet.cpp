@@ -7,7 +7,7 @@
 #include <iostream>
 
 // "Nu esti conectat la eternet, ai restanta puisor"
-bool EthernetInterface::receiveData(DataLinkLayer& data) {
+bool EthernetInterface::receiveData(const DataLinkLayer& data) {
     if (!isOn)
         return false;
 
@@ -77,7 +77,7 @@ bool EthernetInterface::turnOff() {
     return isOn = false;
 }
 
-bool EthernetInterface::sendData(DataLinkLayer& data) {
+bool EthernetInterface::sendData(const DataLinkLayer& data) {
     if (link == nullptr || !isOn)
         return false; 
 

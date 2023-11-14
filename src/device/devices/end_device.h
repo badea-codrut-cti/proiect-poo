@@ -16,7 +16,7 @@ class EndDevice : public Device {
 
         explicit operator EthernetInterface&();
 
-        Device* clone() override;
+        [[nodiscard]] Device* clone() const override;
 
         [[nodiscard]] SubnetAddress getAddress() const;
         [[nodiscard]] IPv4Address getDefaultGateway() const;

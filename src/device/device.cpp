@@ -2,8 +2,8 @@
 #include "./adapter.h"
 #include "../date/osi/network.h"
 #include "../protocoale/arp.h"
+#include "../protocoale/icmp.h"
 #include <stdexcept>
-#include <utility>
 #include <iostream>
 
 Device::Device(uint8_t interfaceCount, bool unnumbered, std::string hostname): 
@@ -58,25 +58,54 @@ bool Device::getState() const {
     return isOn;
 }
 
-bool Device::interfaceCallback([[maybe_unused]]DataLinkLayer& _data, [[maybe_unused]]uint8_t index) {
+bool Device::interfaceCallback([[maybe_unused]]const DataLinkLayer& _data, [[maybe_unused]]uint8_t index) {
     return true;
 }
 
-bool Device::handleARPRequest(DataLinkLayer& _data, uint8_t fIndex) {
-    if (_data.getL2Type() != DataLinkLayer::ARP) 
-        return false;
-
+bool Device::handlePingRequest(const DataLinkLayer& data, const MACAddress& mac) {
     try {
-        auto payload = dynamic_cast<ARPPayload&>(_data.getPayload());
+        auto packet = dynamic_cast<const NetworkLayer&>(data);
 
-        if (payload.getHardwareType() != ARPPayload::ETHERNET || payload.getProtocolType() != ARPPayload::IPV4)
+        if (packet.getL3Protocol() != NetworkLayer::ICMP)
             return false;
 
-        auto [hwSrc, hwDest, protoSrc, protoDest] = ARPParser::parseARPPayload(payload);
+        if (!adapter.hasInterface(packet.getIPDestination()))
+            return false;
+
+        try {
+            auto payload = dynamic_cast<const ICMPPayload*>(data.getPayload());
+            
+            if (payload->getType() != ICMPPayload::ECHO_REQUEST)
+                return false;
+
+            ICMPPayload pl(ICMPPayload::ECHO_REPLY, 0);
+            DataLinkLayer l2(data.getMACSource(), data.getMACDestination(), pl, DataLinkLayer::IPV4);
+            NetworkLayer l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
+            adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
+            return true;
+        } catch(const std::bad_cast&) {
+            throw std::invalid_argument("ICMP packet has invalid payload.");
+        }
+
+        return false;
+    } catch(const std::bad_cast&) {
+        return false;
+    }
+    return false;
+}
+
+bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
+    try {
+        auto payload = dynamic_cast<const ARPPayload*>(data.getPayload());
+
+        if (payload->getHardwareType() != ARPPayload::ETHERNET || payload->getProtocolType() != ARPPayload::IPV4)
+            return false;
+
+        auto [hwSrc, hwDest, protoSrc, protoDest] = ARPParser::parseARPPayload(*payload);
 
         bool isItForMe = adapter.hasInterface(protoDest);
 
-        if (payload.getOperation() == ARPPayload::REPLY) {
+        if (payload->getOperation() == ARPPayload::REPLY) {
             arpCache.insert(std::make_pair(protoSrc, hwSrc));
             if (isItForMe)
             return isItForMe;
@@ -85,7 +114,7 @@ bool Device::handleARPRequest(DataLinkLayer& _data, uint8_t fIndex) {
             ARPPayload l2pl = ARPParser::createARPReply(destMAC, hwSrc, protoDest, protoSrc);
             DataLinkLayer l2(destMAC, hwSrc, l2pl, DataLinkLayer::ARP);
             NetworkLayer l3(l2, protoDest, protoSrc);
-            adapter[fIndex].sendData(l3);
+            adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
             return true;
         }
 
@@ -95,22 +124,26 @@ bool Device::handleARPRequest(DataLinkLayer& _data, uint8_t fIndex) {
     return false;
 }
 
-bool Device::receiveData(DataLinkLayer& _data, EthernetInterface& _interface) {
+bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface) {
     if (!isOn)
         return false;
 
-    if (!adapter.hasInterface(_interface.getMacAddress()))
+    if (!adapter.hasInterface(interface.getMacAddress()))
         throw std::invalid_argument("Interface does not belong in the network adapter.");
-    
-    int fIndex = adapter.getIntefaceIndex(_interface.getMacAddress());
 
     // TODO: This should be adapted to each device's interfaceCallback override
     // Some devices will have VLANs and passive interfaces (i.e switches), thus
     // using `adapter.getInterfaceIndex` is a mistake
-    if (handleARPRequest(_data, fIndex)) 
+    if (data.getL2Type() == DataLinkLayer::ARP && handleARPRequest(data, interface.getMacAddress())) { 
         return true;
+    }
+
+    if (data.getL2Type() == DataLinkLayer::IPV4 && handlePingRequest(data, interface.getMacAddress())) 
+        return true;
+
+    int fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
     
-    return interfaceCallback(_data, fIndex);
+    return interfaceCallback(data, fIndex);
 }
 
 const std::map<IPv4Address, MACAddress>& Device::getARPCache() const {
@@ -136,7 +169,7 @@ hostname(other.hostname) {
     }
 }
 
-Device* Device::clone() {
+Device* Device::clone() const {
     return new Device(*this);
 }
 

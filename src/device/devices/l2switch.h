@@ -9,7 +9,7 @@ class L2Switch: public Device {
         std::map<MACAddress, uint8_t> arpRouteCache;
 
     protected:
-        bool interfaceCallback(DataLinkLayer&, uint8_t) override;
+        bool interfaceCallback(const DataLinkLayer&, uint8_t) override;
     
     public:
         L2Switch();

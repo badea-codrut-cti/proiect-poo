@@ -20,16 +20,18 @@ class Device {
 
         MACAddress getArpEntryOrBroadcast(const IPv4Address&);
 
-        virtual bool handleARPRequest(DataLinkLayer&, uint8_t);
+        virtual bool handleARPRequest(const DataLinkLayer&, const MACAddress&);
 
-        virtual bool interfaceCallback(DataLinkLayer&, uint8_t);
+        virtual bool handlePingRequest(const DataLinkLayer&, const MACAddress&);
+
+        virtual bool interfaceCallback(const DataLinkLayer&, uint8_t);
 
         explicit Device(uint8_t, bool, std::string=DEFAULT_DEVICE_HOSTNAME);
 
     public:
         Device();
 
-        explicit Device(const Device&);
+        Device(const Device&);
 
         virtual ~Device() = default;
 
@@ -41,7 +43,7 @@ class Device {
 
         virtual bool sendARPRequest(const IPv4Address&, bool);
 
-        virtual Device* clone();
+        [[nodiscard]] virtual Device* clone() const;
 
         [[nodiscard]] bool getState() const;
 
@@ -51,7 +53,7 @@ class Device {
 
         [[nodiscard]] const std::map<IPv4Address, MACAddress>& getARPCache() const;
 
-        virtual bool receiveData(DataLinkLayer&, EthernetInterface&);
+        virtual bool receiveData(const DataLinkLayer&, EthernetInterface&);
 
         friend std::ostream& operator<<(std::ostream&, const Device&);
 };

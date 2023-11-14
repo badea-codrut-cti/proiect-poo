@@ -148,6 +148,10 @@ ARPPayload::ProtocolType ARPPayload::getProtocolType() const {
     return protocolType;
 }
 
+L2Payload* ARPPayload::clone() const {
+    return new ARPPayload(*this);
+}
+
 ARPPayload ARPParser::createARPRequest(const MACAddress& hwSrc, const IPv4Address& hwDest, const IPv4Address& protoDest) {
     return {ARPPayload::REQUEST, 
     hwSrc.getOctets(), {0, 0, 0, 0, 0, 1}, 

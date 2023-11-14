@@ -2,21 +2,21 @@
 #include "../adapter.h"
 
 // "Ai control complet asupra echipamentului?"
-bool L2Switch::interfaceCallback(DataLinkLayer& _data, uint8_t fIndex) {
-    auto it = arpRouteCache.find(_data.getMACDestination());
-    if (_data.getMACDestination() == "FF:FF:FF:FF:FF:FF" || it == arpRouteCache.end()) {
+bool L2Switch::interfaceCallback(const DataLinkLayer& data, uint8_t fIndex) {
+    auto it = arpRouteCache.find(data.getMACDestination());
+    if (data.getMACDestination() == "FF:FF:FF:FF:FF:FF" || it == arpRouteCache.end()) {
         for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
             if (i == fIndex)
                 continue;
-            adapter[i].sendData(_data);
+            adapter[i].sendData(data);
         }
         return true;
     }
 
-    arpRouteCache.insert(std::make_pair(_data.getMACSource(), fIndex));
+    arpRouteCache.insert(std::make_pair(data.getMACSource(), fIndex));
 
     uint8_t intId = it->second;
-    adapter[intId].sendData(_data);
+    adapter[intId].sendData(data);
     return true;
 }
 

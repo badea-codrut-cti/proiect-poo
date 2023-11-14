@@ -52,6 +52,6 @@ EndDevice::operator EthernetInterface&() {
     return adapter[0];
 }
 
-Device* EndDevice::clone() {
+Device* EndDevice::clone() const {
     return new EndDevice(*this);
 }

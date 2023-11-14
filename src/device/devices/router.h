@@ -15,7 +15,7 @@ class Router: public Device {
     public:
         Router();
 
-        bool interfaceCallback(DataLinkLayer&, uint8_t) override;
+        bool interfaceCallback(const DataLinkLayer&, uint8_t) override;
 
         bool addStaticRoute(const SubnetAddress&, const IPv4Address&);
 

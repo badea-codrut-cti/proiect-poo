@@ -56,6 +56,8 @@ class ARPPayload : public L2Payload {
 
         ~ARPPayload() override;
 
+        [[nodiscard]] L2Payload* clone() const override;
+
         [[nodiscard]] Operation getOperation() const;
 
         [[nodiscard]] const uint8_t* getSourceHardwareAddress() const;
