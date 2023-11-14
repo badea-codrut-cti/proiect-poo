@@ -21,8 +21,13 @@ uint16_t TransportLayer::getDestinationPort() const {
     return destinationPort;
 }
 
+DataLinkLayer* TransportLayer::clone() const {
+    return new TransportLayer(*this);
+}
+
 std::ostream& operator<<(std::ostream& os, const TransportLayer& other) {
-	os << other.getIPSource() << std::string(":") << std::to_string(other.getSourcePort()) << std::string("->")
-        << other.getIPDestination() << std::string(":") << std::to_string(other.getDestinationPort());
+	os << (DataLinkLayer&) other;
+    os << other.getIPSource() << ":" << (unsigned) other.sourcePort << "\n";
+    os << other.getIPDestination() << ":" << (unsigned) other.destinationPort << "\n";
 	return os;
 }

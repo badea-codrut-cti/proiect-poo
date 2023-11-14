@@ -14,5 +14,7 @@ class TransportLayer: public NetworkLayer {
 
         [[nodiscard]] uint16_t getDestinationPort() const;
 
+        [[nodiscard]] DataLinkLayer* clone() const override;
+
         friend std::ostream& operator<<(std::ostream&, const TransportLayer&);
 };

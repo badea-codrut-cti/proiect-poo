@@ -4,14 +4,15 @@
 
 // "Copilu, ce e ala Datagram? Nu exista, dom student."
 
-NetworkLayer::NetworkLayer(DataLinkLayer& layer, const IPv4Address& _source, const IPv4Address& _destination, 
-uint8_t _ttl, IPProtocolType _proto): 
-DataLinkLayer(layer), source(_source), destination(_destination), TTL(_ttl), proto(_proto) {
+NetworkLayer::NetworkLayer(DataLinkLayer& layer, const IPv4Address& sourceIP, const IPv4Address& destIP, 
+uint8_t ttl, IPProtocolType l3proto): 
+DataLinkLayer(layer), source(sourceIP), destination(destIP), TTL(ttl), proto(l3proto) {
 
 }
 
-NetworkLayer::NetworkLayer(const NetworkLayer& layer): 
-DataLinkLayer(layer), source(layer.source), destination(layer.destination), TTL(layer.getTTL()) {
+NetworkLayer::NetworkLayer(const NetworkLayer& other): 
+DataLinkLayer(other), source(other.source), destination(other.destination), TTL(other.getTTL()),
+proto(other.proto) {
 
 }
 
@@ -27,12 +28,21 @@ uint8_t NetworkLayer::getTTL() const {
     return TTL;
 }
 
+void NetworkLayer::age() {
+    TTL--;
+}
+
+DataLinkLayer* NetworkLayer::clone() const {
+    return new NetworkLayer(*this);
+}
+
 NetworkLayer::IPProtocolType NetworkLayer::getL3Protocol() const {
     return proto;
 }
 
 std::ostream& operator<<(std::ostream& os, const NetworkLayer& other) {
-	os << other.source << std::string("->") << other.destination <<
-    std::string(" (TTL:") << std::to_string(other.TTL) << std::string(")");
+    os << (DataLinkLayer&) other;
+	os << "Source IP address: " << other.source << "\n";
+    os << "Destination IP address: " << other.destination << "\n";
 	return os;
 }

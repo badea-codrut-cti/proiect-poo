@@ -33,11 +33,15 @@ class NetworkLayer: public DataLinkLayer {
 
         NetworkLayer(const NetworkLayer&);
 
+        void age();
+
         [[nodiscard]] IPv4Address getIPSource() const;
 
         [[nodiscard]] IPv4Address getIPDestination() const;
 
         [[nodiscard]] uint8_t getTTL() const;
+
+        [[nodiscard]] DataLinkLayer* clone() const override;
 
         [[nodiscard]] IPProtocolType getL3Protocol() const;
 

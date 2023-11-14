@@ -21,7 +21,7 @@ class DataLinkLayer {
 
     private:
         MACAddress source, destination;
-        L2Payload& payload;
+        L2Payload* payload;
         L2TypeField l2type;
 
     public:
@@ -35,7 +35,9 @@ class DataLinkLayer {
 
         [[nodiscard]] MACAddress getMACDestination() const;
 
-        [[nodiscard]] L2Payload& getPayload() const;
+        [[nodiscard]] const L2Payload* getPayload() const;
+
+        [[nodiscard]] virtual DataLinkLayer* clone() const;
 
         [[nodiscard]] L2TypeField getL2Type() const;
 
