@@ -79,6 +79,17 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install ninja xxd webview2-runtime
+      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: 'lts/*'
+
+      - name: Compile the Svelte frontent
+        run: | 
+          cd ./assets
+          npm install && npm run build
+          cd ..
 
       - name: Cache tools
         uses: actions/cache@v3
@@ -93,17 +104,6 @@ jobs:
         with:
           custom_flags: ${{ matrix.cmake_flags }}
           warnings_as_errors: 'ON'
-
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2
-        with:
-          node-version: 'lts/*'
-
-      - name: Compile the Svelte frontent
-        run: | 
-          cd ./assets
-          npm install && npm run build
-          cd ..
           
       - name: Build
         # Execute the build using N jobs (-jN)

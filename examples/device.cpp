@@ -8,6 +8,18 @@ void arp() {
 
     a.setIpAddress(SubnetAddress(IPv4Address("192.168.1.2"), 24));
     b.setIpAddress(SubnetAddress(IPv4Address("192.168.1.3"), 24));
+
+    b.turnOff();
+    a.sendARPRequest(IPv4Address("192.168.1.3"), false);
+
+    assert(a.getARPCache().empty());
+
+    b.turnOn();
+    a.sendARPRequest(IPv4Address("192.168.1.3"), false);
+
+    for (auto& entry : a.getARPCache()) {
+        assert(entry.first == "192.168.1.3");
+    }   
 }
 
 void clone() {
