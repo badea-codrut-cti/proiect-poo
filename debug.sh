@@ -1,14 +1,21 @@
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+cd .. 
+
 for i in "src/" "examples/"
 do
-  cppcheck --enable=all --std=c++11 --check-config \
+  cppcheck --enable=all \
   --inline-suppr \
+  --inline-suppr \
+  --project="./build/compile_commands.json" \
   --suppress=missingIncludeSystem \
   --suppress=unmatchedSuppression \
   --suppress=useStlAlgorithm $i
 done
 
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
+
 cmake --build .
 
 ASAN_OPTIONS=detect_leaks=1
