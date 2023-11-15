@@ -17,7 +17,7 @@ void arp() {
     b.turnOn();
     a.sendARPRequest(IPv4Address("192.168.1.3"), false);
 
-    for (auto& entry : a.getARPCache()) {
+    for (const auto& entry : a.getARPCache()) {
         assert(entry.first == "192.168.1.3");
     }   
 }
