@@ -1,3 +1,5 @@
+/*
+
 #include "./transport.h"
 #include <iostream>
 
@@ -31,3 +33,5 @@ std::ostream& operator<<(std::ostream& os, const TransportLayer& other) {
     os << other.getIPDestination() << ":" << (unsigned) other.destinationPort << "\n";
 	return os;
 }
+
+*/
