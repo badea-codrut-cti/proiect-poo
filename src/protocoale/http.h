@@ -1,3 +1,5 @@
+/*
+
 #include <string>
 #include "./payload.h"
 
@@ -34,3 +36,5 @@ class HTTPRequestPayload : public L2Payload {
 
         [[nodiscard]] const std::string& getBody() const;
 };
+
+*/
