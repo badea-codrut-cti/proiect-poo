@@ -86,12 +86,10 @@ bool Device::handlePingRequest(const DataLinkLayer& data, const MACAddress& mac)
         } catch(const std::bad_cast&) {
             throw std::invalid_argument("ICMP packet has invalid payload.");
         }
-
         return false;
     } catch(const std::bad_cast&) {
         return false;
     }
-    return false;
 }
 
 bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
@@ -131,15 +129,13 @@ bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface
     if (!adapter.hasInterface(interface.getMacAddress()))
         throw std::invalid_argument("Interface does not belong in the network adapter.");
 
-    // TODO: This should be adapted to each device's interfaceCallback override
-    // Some devices will have VLANs and passive interfaces (i.e switches), thus
-    // using `adapter.getInterfaceIndex` is a mistake
     if (data.getL2Type() == DataLinkLayer::ARP && handleARPRequest(data, interface.getMacAddress())) { 
         return true;
     }
 
-    if (data.getL2Type() == DataLinkLayer::IPV4 && handlePingRequest(data, interface.getMacAddress())) 
+    if (data.getL2Type() == DataLinkLayer::IPV4 && handlePingRequest(data, interface.getMacAddress())) {
         return true;
+    }
 
     int fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
     

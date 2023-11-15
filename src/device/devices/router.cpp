@@ -39,11 +39,14 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
 
         sendARPRequest(dest, false);  
 
-        std::unique_ptr<DataLinkLayer> clone(data.clone());
+        auto pClone = (NetworkLayer*) data.clone();
+        pClone->age();
+
+        std::unique_ptr<DataLinkLayer> clone(pClone);
         std::reference_wrapper<DataLinkLayer> ref = *clone;
 
         return adapter[adapter.findInSubnet(dest)].sendData(ref);
-    } catch ([[maybe_unused]] std::bad_cast& e) {
+    } catch ([[maybe_unused]] const std::bad_cast&) {
         // Avem de a face cu trafic L2 
         return false;
     }
