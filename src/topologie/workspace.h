@@ -1,3 +1,5 @@
+/*
+
 #include <vector>
 #include "../device/device.h"
 
@@ -17,5 +19,7 @@ class Workspace {
 
         std::string WDeviceAddParser(std::string);
 
-        Workspace& getWorkspace();
+        static Workspace& getWorkspace();
 };
+
+*/

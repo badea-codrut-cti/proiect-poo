@@ -1,3 +1,5 @@
+/*
+
 #include "workspace.h"
 #include <nlohmann/json.hpp>
 
@@ -15,8 +17,16 @@ unsigned int Workspace::addDevice(Device* dev) {
 
 std::string Workspace::WDeviceAddParser(std::string str) {
     json data = json::parse(str);
+    for (auto& device : data) {
+        std::cout << device["label"];
+    }
     return str;
+}
+
+Workspace& Workspace::getWorkspace() {
+    return workspace;
 }
 
 Workspace Workspace::workspace{};
 
+*/
