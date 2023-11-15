@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { UIDeviceType } from "../../types/device.ts";
-    const icons = import.meta.glob('../../icons/*.svg', { as: 'raw', eager: true });
+    const icons = import.meta.glob('../../icons/toolbar/*.svg', {  eager: true });
     const deviceTypes: UIDeviceType[] = [
         {
             label: "Network Devices",
@@ -45,7 +45,7 @@
             {#each deviceTypes as deviceType}
                 <button class="items-center p-2 inline-block" on:click={() => {active = deviceType}}>
                     <div class="toolbar-icon">
-                        {@html icons["../../icons/" + deviceType.icon + ".svg"]}
+                        {@html icons["../../icons/toolbar/" + deviceType.icon + ".svg"].default}
                     </div>
                 </button>
             {/each}
@@ -54,9 +54,9 @@
     </div>
     <div class="flex overflow-x-auto">
         {#each active.devices as device}
-          <button class="flex flex-col items-center p-2">
+          <button class="flex flex-col items-center p-2" on:click={() => {}}>
             <div class="toolbar-icon">
-                {@html icons["../../icons/" + device.icon + ".svg"]}
+                {@html icons["../../icons/toolbar/" + device.icon + ".svg"].default}
             </div>
             <span>{@html device.label}</span>
           </button>

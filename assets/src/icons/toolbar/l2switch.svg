@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 77 51"
+   fill="#fff"
+   fill-rule="evenodd"
+   stroke="#000"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   font-family="Roboto"
+   font-size="14"
+   text-anchor="middle"
+   version="1.1"
+   id="svg23"
+   sodipodi:docname="voice-switch.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview25"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="5.5109032"
+     inkscape:cx="-12.97428"
+     inkscape:cy="15.786886"
+     inkscape:window-width="1440"
+     inkscape:window-height="843"
+     inkscape:window-x="0"
+     inkscape:window-y="26"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg23" />
+  <defs
+     id="defs4">
+    <style
+       id="style2">@font-face{font-family:&quot;Roboto&quot;;src:url(data:application/font-woff;charset=utf-8;base64,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) format(&quot;woff&quot;); font-weight:bold;font-style:normal;}</style>
+  </defs>
+  <use
+     xlink:href="#A"
+     x="0.5"
+     y="0.5"
+     id="use6"
+     transform="translate(0,7.2013608)" />
+  <symbol
+     id="A"
+     overflow="visible">
+    <g
+       stroke="#fff"
+       stroke-linejoin="miter"
+       fill="#0e6f9c"
+       stroke-width=".787"
+       id="g12">
+      <path
+         d="M56.268 36.594v-18.1H0v18.1h56.268z"
+         id="path8" />
+      <path
+         d="M0 18.494L22.822 0h52.334L56.268 18.494H0zm56.268 18.887L75.156 16.92V.394l-18.887 18.1v18.887z"
+         id="path10" />
+    </g>
+    <path
+       d="M33.053 13.772l-1.18.787H17.707l-1.18 1.574-3.935-1.574 7.87-2.361-1.574 1.574h14.166zm11.018-6.689l-1.18.787H28.725l-1.18 1.181-3.935-1.574 7.87-1.967-1.574 1.574h14.165zm-8.657 4.328l1.18-.787H50.76l1.18-1.574 3.935 1.574-7.87 2.361 1.574-1.574H35.414zm7.476-7.083l.787-.787h14.165l1.574-1.18 3.541 1.574-7.476 1.967 1.18-1.574H42.89z"
+       stroke="none"
+       id="path14" />
+    <path
+       d="M34.234 34.627V21.642H20.855v12.985h13.378z"
+       stroke="#fff"
+       stroke-linejoin="miter"
+       fill="#000"
+       stroke-width=".787"
+       id="path16" />
+    <text
+       fill="#fff"
+       font-size="15.739"
+       font-weight="bold"
+       stroke="none"
+       id="text20"><tspan
+         x="28.008"
+         y="33.854"
+         id="tspan18">V</tspan></text>
+  </symbol>
+  <path
+     style="fill:#0e6f9c;fill-opacity:1;stroke:none;stroke-width:0.2"
+     d="m 19.96362,27.982836 16.499401,0.07326 0.293865,15.00963 -11.933788,0.561378 -5.940849,-0.515603 z"
+     id="path1304" />
+</svg>
