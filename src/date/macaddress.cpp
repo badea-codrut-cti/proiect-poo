@@ -121,7 +121,7 @@ bool MACAddress::operator<(const MACAddress& other) const {
     for (uint8_t i=0; i<MACADDRESS_SIZE-1; i++)
         if (octets[i] > other.octets[i])
             return false;
-    return octets[MACADDRESS_SIZE-1] < other.octets[MACADDRESS_SIZE];
+    return octets[MACADDRESS_SIZE-1] < other.octets[MACADDRESS_SIZE-1];
 }
 
 bool MACAddress::operator==(const MACAddress& other) const {
