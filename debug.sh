@@ -3,16 +3,13 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 cd .. 
 
-for i in "src/" "examples/"
-do
-  cppcheck --enable=all \
+cppcheck --enable=all \
   --inline-suppr \
   --inline-suppr \
   --project="./build/compile_commands.json" \
   --suppress=missingIncludeSystem \
   --suppress=unmatchedSuppression \
-  --suppress=useStlAlgorithm $i
-done
+  --suppress=useStlAlgorithm 
 
 cd build
 

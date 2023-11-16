@@ -10,13 +10,12 @@ bool L2Switch::interfaceCallback(const DataLinkLayer& data, uint8_t fIndex) {
                 continue;
             adapter[i].sendData(data);
         }
-        return true;
+    } else {
+        uint8_t intId = it->second;
+        adapter[intId].sendData(data);
     }
 
     arpRouteCache.insert(std::make_pair(data.getMACSource(), fIndex));
-
-    uint8_t intId = it->second;
-    adapter[intId].sendData(data);
     return true;
 }
 

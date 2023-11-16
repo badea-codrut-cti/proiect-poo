@@ -1,6 +1,6 @@
 #include "../src/device/devices/end_device.h"
 #include <cassert>
-#include <iostream>
+#include <stdexcept>
 
 void arp() {
     EndDevice a, b;
@@ -20,6 +20,13 @@ void arp() {
     for (const auto& entry : a.getARPCache()) {
         assert(entry.first == "192.168.1.3");
     }   
+
+    try {
+        a.getNetworkAdapter()[0].setMacAddress(MACAddress("01:00:5E:0A:00:02"));
+        assert(false); // This should error out.
+    } catch([[maybe_unused]] const std::invalid_argument&) {
+
+    }
 }
 
 void clone() {
