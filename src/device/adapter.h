@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <stdexcept>
 #include "./ethernet.h"
 
 #ifndef ADAPTER_H
@@ -11,6 +10,8 @@ class NetworkAdapter {
     private:
         uint8_t numInterfaces;
         EthernetInterface** interfaces;
+
+        void allocate();
 
     public:
         NetworkAdapter(Device&, uint8_t, bool=false);

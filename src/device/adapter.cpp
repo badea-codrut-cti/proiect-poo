@@ -5,6 +5,12 @@
 
 NetworkAdapter::NetworkAdapter(Device& device, uint8_t _numInterfaces, bool passive): 
 numInterfaces(_numInterfaces) {
+    // This should not have a copy constructor
+    // Device and NetworkAdapter are in a sort of reference cycle, storing Device& will be pointlessly difficult
+
+
+    // cppcheck-suppress noCopyConstructor
+    // cppcheck-suppress noOperatorEq
     interfaces = new EthernetInterface*[_numInterfaces];
     for (uint8_t i=0;i < numInterfaces; i++)
         interfaces[i] = new EthernetInterface(device, passive);
