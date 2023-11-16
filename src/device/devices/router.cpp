@@ -1,7 +1,7 @@
 #include "./router.h"
 #include "../../date/osi/network.h"
 #include <memory>
-#include <stdexcept>
+#include "../../protocoale/icmp.h"
 #include <typeinfo>
 
 Router::Router(): Device(ROUTER_INT_COUNT, false, DEFAULT_ROUTER_HOSTNAME) {
@@ -34,18 +34,36 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
             return false;
 
         IPv4Address dest = findRoute(frame.getIPDestination());
-        if (dest == "127.0.0.1")
+        if (dest == "127.0.0.1") {
+            if (frame.getL3Protocol() == NetworkLayer::ICMP) {
+                IPv4Address icmpReturn = findRoute(frame.getIPSource());
+                if (icmpReturn == "127.0.0.1")
+                    return false;
+
+                sendARPRequest(icmpReturn, false);
+
+                ICMPPayload pl(ICMPPayload::DEST_UNREACHABLE, 0);
+                DataLinkLayer l2(adapter[fIndex].getMacAddress(), getArpEntryOrBroadcast(icmpReturn), pl, DataLinkLayer::IPV4);
+                NetworkLayer l3(l2, adapter[fIndex].getAddress(), frame.getIPSource(), DEFAULT_TTL);
+                adapter[fIndex].sendData(l3);
+            }
             return false;
+        }
 
         sendARPRequest(dest, false);  
 
-        auto pClone = (NetworkLayer*) data.clone();
+        auto pClone = dynamic_cast<NetworkLayer*>(data.clone());
         pClone->age();
+
+        EthernetInterface& sender = adapter[adapter.findInSubnet(dest)];
+
+        pClone->setMACSource(sender.getMacAddress());
 
         std::unique_ptr<DataLinkLayer> clone(pClone);
         std::reference_wrapper<DataLinkLayer> ref = *clone;
 
-        return adapter[adapter.findInSubnet(dest)].sendData(ref);
+        sender.sendData(ref);
+        return true;
     } catch ([[maybe_unused]] const std::bad_cast&) {
         // Avem de a face cu trafic L2 
         return false;

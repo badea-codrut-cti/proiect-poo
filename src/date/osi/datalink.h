@@ -31,6 +31,8 @@ class DataLinkLayer {
 
         virtual ~DataLinkLayer();
 
+        bool setMACSource(const MACAddress&);
+
         [[nodiscard]] MACAddress getMACSource() const;
 
         [[nodiscard]] MACAddress getMACDestination() const;
