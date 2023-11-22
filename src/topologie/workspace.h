@@ -1,5 +1,3 @@
-/*
-
 #include <vector>
 #include "../device/device.h"
 
@@ -18,8 +16,6 @@ class Workspace {
         unsigned int addDevice(Device*);
 
         std::string WDeviceAddParser(std::string);
-
+        
         static Workspace& getWorkspace();
 };
-
-*/
