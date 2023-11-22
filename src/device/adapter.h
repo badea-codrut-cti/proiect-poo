@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <functional>
 #include "./ethernet.h"
 
 #ifndef ADAPTER_H
@@ -15,6 +16,14 @@ class NetworkAdapter {
 
     public:
         NetworkAdapter(Device&, uint8_t, bool=false);
+
+        NetworkAdapter(Device&, uint8_t, std::function<EthernetInterface*(Device&, uint8_t)>);
+
+        NetworkAdapter(const NetworkAdapter&) = delete;
+
+        NetworkAdapter& operator=(const NetworkAdapter&) = delete;
+
+        bool copy(Device&, const NetworkAdapter&);
 
         ~NetworkAdapter();
 

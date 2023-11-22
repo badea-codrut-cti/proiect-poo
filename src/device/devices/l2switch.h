@@ -1,6 +1,6 @@
 #include "../device.h"
 
-const uint8_t SWITCH_INT_COUNT = 24;
+const uint8_t SWITCH_INT_COUNT = 26;
 
 const std::string DEFAULT_SWITCH_HOSTNAME = "Switch";
 

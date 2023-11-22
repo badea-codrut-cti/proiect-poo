@@ -23,13 +23,19 @@ class EthernetInterface {
 
         bool receiveData(const DataLinkLayer&);
 
-        unsigned long speed{FAST_ETHERNET}, bandwidth{FAST_ETHERNET};
+        unsigned long long speed, maxSpeed, bandwidth;
 
         // TODO: arp type, cdp, crypto, delay, descriere
         // queue, MTU, pppoe, QoS, HSRP
 
     public:
-        explicit EthernetInterface(Device&, bool=false);
+        explicit EthernetInterface(Device&, unsigned long long, bool);
+
+        EthernetInterface(const EthernetInterface&) = delete;
+
+        EthernetInterface& operator=(const EthernetInterface&) = delete;
+
+        EthernetInterface* copy(Device&) const;
 
         ~EthernetInterface();
 
@@ -49,7 +55,9 @@ class EthernetInterface {
 
         bool disconnect();
 
-        [[nodiscard]] unsigned long getSpeed() const;
+        [[nodiscard]] unsigned long long getMaxSpeed() const;
+
+        [[nodiscard]] unsigned long long getSpeed() const;
 
         [[nodiscard]] MACAddress getMacAddress() const;
 

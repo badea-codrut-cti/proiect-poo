@@ -3,17 +3,45 @@
 #include <stdexcept>
 #include <iostream>
 
-NetworkAdapter::NetworkAdapter(Device& device, uint8_t _numInterfaces, bool passive): 
-numInterfaces(_numInterfaces) {
-    // This should not have a copy constructor
-    // Device and NetworkAdapter are in a sort of reference cycle, storing Device& will be pointlessly difficult
-
-
-    // cppcheck-suppress noCopyConstructor
-    // cppcheck-suppress noOperatorEq
-    interfaces = new EthernetInterface*[_numInterfaces];
+NetworkAdapter::NetworkAdapter(Device& device, uint8_t intCount, bool passive): 
+numInterfaces(intCount) {
+    interfaces = new EthernetInterface*[intCount];
     for (uint8_t i=0;i < numInterfaces; i++)
-        interfaces[i] = new EthernetInterface(device, passive);
+        interfaces[i] = new EthernetInterface(device, GIGABIT_ETHERNET, passive);
+}
+
+NetworkAdapter::NetworkAdapter(Device& device, uint8_t intCount, std::function<EthernetInterface*(Device&, uint8_t)> func):
+numInterfaces(intCount) {
+    interfaces = new EthernetInterface*[intCount];
+    for (uint8_t i=0;i < numInterfaces; i++)
+        interfaces[i] = func(device, i);
+}
+
+bool NetworkAdapter::copy(Device& dev, const NetworkAdapter& other) {
+    if (this == &other) {
+        // Self assignment would return in making everything a nullptr
+        // I have no idea when we will need to swap the card owner to another device
+        for (uint8_t i = 0; i < numInterfaces; i++) {
+            EthernetInterface* interface = interfaces[i]->copy(dev);
+            delete interfaces[i];
+            interfaces[i] = interface;
+        }
+        return true;
+    }
+
+    for (uint8_t i = 0; i < numInterfaces; i++)
+        delete interfaces[i];
+
+    delete[] interfaces;
+
+    numInterfaces = other.numInterfaces;
+    interfaces = new EthernetInterface*[numInterfaces];
+
+    for (uint8_t i = 0; i < numInterfaces; i++) {
+        interfaces[i] = other.interfaces[i]->copy(dev);
+    }
+
+    return true;
 }
 
 NetworkAdapter::~NetworkAdapter() {
@@ -78,14 +106,18 @@ EthernetInterface& NetworkAdapter::operator[](uint8_t index) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const NetworkAdapter& adapter) {
+    uint8_t lastChange = 0;
     for (uint8_t i=0; i<adapter.interfaceCount();i++) {
         os << "interface ";
-        if (adapter[i].getSpeed() >= 1000)
+        if (adapter[i].getMaxSpeed() >= 1000)
             os << "Gigabit";
-        else if (adapter[i].getSpeed() >= 100)
+        else if (adapter[i].getMaxSpeed() >= 100)
             os << "Fast";
+
+        if (i > 0 && adapter[i].getMaxSpeed() != adapter[i-1].getMaxSpeed())
+            lastChange = i;
         
-        os << "Ethernet 0/" << (int)i << "\r\n";
+        os << "Ethernet 0/" << (int)(i-lastChange) << "\r\n";
         os << adapter[i];
     }
     return os;

@@ -28,7 +28,7 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
         if (!adapter.hasInterface(data.getMACDestination()))
             return false;
 
-        auto frame = dynamic_cast<const NetworkLayer&>(data);
+        auto& frame = dynamic_cast<const NetworkLayer&>(data);
         
         if (!frame.getTTL())
             return false;
@@ -52,12 +52,13 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
 
         sendARPRequest(dest, false);  
 
-        auto pClone = dynamic_cast<NetworkLayer*>(data.clone());
+        auto pClone = frame.clone();
         pClone->age();
 
         EthernetInterface& sender = adapter[adapter.findInSubnet(dest)];
 
         pClone->setMACSource(sender.getMacAddress());
+        pClone->setMACDestination(getArpEntryOrBroadcast(dest));
 
         std::unique_ptr<DataLinkLayer> clone(pClone);
         std::reference_wrapper<DataLinkLayer> ref = *clone;

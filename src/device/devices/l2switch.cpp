@@ -19,7 +19,12 @@ bool L2Switch::interfaceCallback(const DataLinkLayer& data, uint8_t fIndex) {
     return true;
 }
 
-L2Switch::L2Switch(): Device(SWITCH_INT_COUNT, true, DEFAULT_SWITCH_HOSTNAME) {
-    adapter[0].setSpeed(1000);
-    adapter[SWITCH_INT_COUNT/2].setSpeed(1000);
+L2Switch::L2Switch(): Device(1, true, DEFAULT_SWITCH_HOSTNAME) {
+    NetworkAdapter copyAdapter(*this, SWITCH_INT_COUNT, 
+        std::function<EthernetInterface*(Device&, uint8_t)>([](Device& dev, uint8_t index) {
+            return new EthernetInterface(dev, index > 1 ? FAST_ETHERNET : GIGABIT_ETHERNET, true);
+        })
+    );
+
+    adapter.copy(*this, copyAdapter);
 }

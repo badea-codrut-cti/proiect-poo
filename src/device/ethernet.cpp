@@ -14,8 +14,9 @@ bool EthernetInterface::receiveData(const DataLinkLayer& data) {
     return device.receiveData(data, *this);
 }
 
-EthernetInterface::EthernetInterface(Device& _device, bool isUnnumbered):
-device(_device), macAddress(publicMACCounter += 1), unnumbered(isUnnumbered) {
+EthernetInterface::EthernetInterface(Device& _device, unsigned long long maxSpeed, bool isUnnumbered):
+device(_device), macAddress(publicMACCounter += 1), unnumbered(isUnnumbered), 
+speed(maxSpeed), maxSpeed(maxSpeed), bandwidth(maxSpeed) {
 }
 
 EthernetInterface::~EthernetInterface() {
@@ -65,6 +66,9 @@ bool EthernetInterface::setSpeed(unsigned long newSpeed) {
     if (newSpeed < REGULAR_ETHERNET)
         throw std::invalid_argument("Speed cannot be lower than regular ethernet.");
 
+    if (newSpeed > maxSpeed)
+        throw std::invalid_argument("Speed cannot be higher than max speed.");
+
     speed = newSpeed;
     return true;
 }
@@ -93,7 +97,11 @@ bool EthernetInterface::disconnect() {
     return true;
 }
 
-unsigned long EthernetInterface::getSpeed() const {
+unsigned long long EthernetInterface::getMaxSpeed() const {
+    return maxSpeed;
+}
+
+unsigned long long EthernetInterface::getSpeed() const {
     return speed;
 }
 
@@ -111,6 +119,14 @@ SubnetAddress EthernetInterface::getAddress() const {
 
 bool EthernetInterface::isUnnumbered() const {
     return unnumbered;
+}
+
+EthernetInterface* EthernetInterface::copy(Device& dev) const {
+    auto ret = new EthernetInterface(dev, maxSpeed, unnumbered);
+    ret->speed = speed;
+    ret->bandwidth = bandwidth;
+    ret->isOn = isOn;
+    return ret;
 }
 
 std::ostream& operator<<(std::ostream& os, const EthernetInterface& ip) {
