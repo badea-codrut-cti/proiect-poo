@@ -33,6 +33,8 @@ class DataLinkLayer {
 
         bool setMACSource(const MACAddress&);
 
+        bool setMACDestination(const MACAddress&);
+
         [[nodiscard]] MACAddress getMACSource() const;
 
         [[nodiscard]] MACAddress getMACDestination() const;

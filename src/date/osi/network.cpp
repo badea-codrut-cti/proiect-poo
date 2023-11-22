@@ -32,7 +32,7 @@ void NetworkLayer::age() {
     TTL--;
 }
 
-DataLinkLayer* NetworkLayer::clone() const {
+NetworkLayer* NetworkLayer::clone() const {
     return new NetworkLayer(*this);
 }
 

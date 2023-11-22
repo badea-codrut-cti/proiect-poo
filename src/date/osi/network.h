@@ -41,7 +41,7 @@ class NetworkLayer: public DataLinkLayer {
 
         [[nodiscard]] uint8_t getTTL() const;
 
-        [[nodiscard]] DataLinkLayer* clone() const override;
+        [[nodiscard]] NetworkLayer* clone() const override;
 
         [[nodiscard]] IPProtocolType getL3Protocol() const;
 

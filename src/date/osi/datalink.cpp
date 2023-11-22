@@ -1,7 +1,6 @@
 #include "./datalink.h"
 #include "../../protocoale/arp.h"
 #include <iostream>
-#include <stdexcept>
 
 DataLinkLayer::DataLinkLayer(const MACAddress& sourceMac, const MACAddress& destinationMac,
  L2Payload& l2payload, L2TypeField l2frametype = IPV4): 
@@ -15,6 +14,11 @@ source(layer.source), destination(layer.destination), payload(layer.payload->clo
 
 bool DataLinkLayer::setMACSource(const MACAddress& mac) {
     source = mac;
+    return true;
+}
+
+bool DataLinkLayer::setMACDestination(const MACAddress& mac) {
+    destination = mac;
     return true;
 }
 
