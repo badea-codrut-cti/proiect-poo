@@ -142,6 +142,10 @@ IPv4Address SubnetAddress::getMaskDotNotation() const {
     return IPv4Address{dotNotation};
 }
 
+uint8_t SubnetAddress::getMaskSlashNotation() const {
+    return subnetMask;
+}
+
 std::ostream& operator<<(std::ostream& os, const SubnetAddress& add) {
     os << add.toString();
     return os;

@@ -34,6 +34,8 @@ class SubnetAddress : public IPv4Address {
 
         [[nodiscard]] IPv4Address getMaskDotNotation() const;
 
+        [[nodiscard]] uint8_t getMaskSlashNotation() const;
+
         SubnetAddress& operator=(const SubnetAddress&);
 
         bool operator==(const std::string&) const;
