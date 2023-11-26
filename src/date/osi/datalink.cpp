@@ -1,11 +1,13 @@
 #include "./datalink.h"
 #include "../../protocoale/arp.h"
+#include "osiexcept.h"
 #include <iostream>
 
 DataLinkLayer::DataLinkLayer(const MACAddress& sourceMac, const MACAddress& destinationMac,
- L2Payload& l2payload, L2TypeField l2frametype = IPV4): 
-source(sourceMac), destination(destinationMac), payload(l2payload.clone()), l2type(l2frametype) {
-
+ L2Payload& l2payload, L2TypeField l2frameType = IPV4): 
+source(sourceMac), destination(destinationMac), payload(l2payload.clone()), l2type(l2frameType) {
+    if (sourceMac.isMulticast() || sourceMac == MACAddress(MACAddress::broadcastAddress))
+        throw InvalidPacketException(sourceMac);
 }
 
 DataLinkLayer::DataLinkLayer(const DataLinkLayer& layer): 
@@ -13,6 +15,8 @@ source(layer.source), destination(layer.destination), payload(layer.payload->clo
 }
 
 bool DataLinkLayer::setMACSource(const MACAddress& mac) {
+    if (mac.isMulticast() || mac == MACAddress(MACAddress::broadcastAddress))
+        throw InvalidPacketException(mac);
     source = mac;
     return true;
 }

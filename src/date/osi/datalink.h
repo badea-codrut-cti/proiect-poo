@@ -11,7 +11,7 @@ class DataLinkLayer {
         enum L2TypeField : uint16_t {
             IPV4    =  2048,
             ARP     =  2054,
-            CTAG    =  33024,
+            VLAN_CTAG    =  33024,
             DOT1X   =  34958,
             DOT1Q   =  34984,
             MPLS    =  33767,
