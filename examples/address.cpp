@@ -1,5 +1,8 @@
 #include "../src/date/macaddress.h"
 #include "../src/date/subnetaddress.h"
+#include "../src/device/devices/end_device.h"
+#include "../src/protocoale/icmp.h"
+#include "../src/date/osi/osiexcept.h"
 #include <cassert>
 
 void test_macaddress() {
@@ -36,4 +39,18 @@ void test_ipv4() {
     // Automatic subnet mask notation from class
     SubnetAddress add3(IPv4Address{"192.168.1.1"});
     assert(add3.getMaskDotNotation() == "255.255.255.0");
+}
+
+void test_device() {
+    EndDevice a, b;
+    a.setIpAddress(SubnetAddress(IPv4Address("192.168.1.1"), 24));
+    b.setIpAddress(SubnetAddress(IPv4Address("192.168.1.2"), 24));
+    a.connect(&(EthernetInterface&) b);
+    ICMPPayload pl(ICMPPayload::ECHO_REQUEST, 0);
+    try {
+        a.sendData(pl, IPv4Address("192.168.1.0"));
+        assert(false);
+    } catch(const InvalidPacketException& e) {
+        
+    }
 }
