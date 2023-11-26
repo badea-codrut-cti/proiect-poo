@@ -1,5 +1,6 @@
 #include "./end_device.h"
 #include "../../date/osi/network.h"
+#include "../../date/osi/osiexcept.h"
 
 EndDevice::EndDevice(): Device() {}
 
@@ -24,6 +25,9 @@ bool EndDevice::setDefaultGateway(const IPv4Address& gatewayAddress) {
 bool EndDevice::sendData(L2Payload& data, const IPv4Address& target) {
     if(adapter[0].getAddress().isLoopbackAddress())
         return false;
+
+    if (adapter[0].getAddress().getNetworkAddress() == target)
+        throw InvalidPacketException(target);
 
     bool hitRouter = !adapter[0].getAddress().isInSameSubnet(target);
 

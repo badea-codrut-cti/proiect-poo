@@ -3,6 +3,7 @@
 #include "../date/osi/network.h"
 #include "../protocoale/arp.h"
 #include "../protocoale/icmp.h"
+#include "../date/osi/osiexcept.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -84,10 +85,11 @@ bool Device::handlePingRequest(const DataLinkLayer& data, const MACAddress& mac)
             adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
             return true;
         } catch(const std::bad_cast&) {
-            throw std::invalid_argument("ICMP packet has invalid payload.");
+            throw InvalidPayloadException(NetworkLayer::ICMP);
         }
         return false;
     } catch(const std::bad_cast&) {
+        // Why would we be passed l2 here?
         return false;
     }
 }
@@ -117,7 +119,7 @@ bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) 
         }
 
     } catch(const std::bad_cast&) {
-        throw std::invalid_argument("ARP Request does not contain valid payload.");
+        throw InvalidPayloadException(DataLinkLayer::ARP);
     }    
     return false;
 }
