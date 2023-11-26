@@ -34,7 +34,7 @@ jobs:
       - name: Install cppcheck
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends cppcheck
+          sudo apt-get install --no-install-recommends cppcheck libgtk-3-dev libwebkit2gtk-4.0-dev
 
       # The flag CMAKE_EXPORT_COMPILE_COMMANDS generates compile_commands.json
       # which is used by cppcheck and clang-tidy
@@ -68,7 +68,7 @@ jobs:
       - name: Install clang-tidy
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends clang-tidy 
+          sudo apt-get install --no-install-recommends clang-tidy libgtk-3-dev libwebkit2gtk-4.0-dev
       - name: Configure CMake
         uses: ./.github/actions/configure-cmake
         with:
@@ -146,13 +146,6 @@ jobs:
             # cmake_generator: Ninja
             # This env runs address sanitizers
             runs_asan: true
-
-          - os: windows-2022
-            c: gcc
-            cxx: g++
-            name: "Windows 2022 MinGW GCC 11"
-            # cmake_flags:
-            cmake_generator: Ninja
 
     steps:
       - name: Checkout repo
@@ -273,15 +266,6 @@ jobs:
                "$(which VCRUNTIME140.dll)" \
                ${GITHUB_WORKSPACE}/${{ env.ZIP_NAME }}
           fi
-
-      - name: Copy stdlib (MinGW)
-        if: runner.os == 'Windows' && matrix.cxx == 'g++'
-        # static linking might not work with MinGW, might be easier this way
-        run: |
-          cp $(which libstdc++-6.dll) \
-            $(which libgcc_s_seh-1.dll) \
-            $(which libwinpthread-1.dll) \
-            ${GITHUB_WORKSPACE}/${{ env.ZIP_NAME }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3

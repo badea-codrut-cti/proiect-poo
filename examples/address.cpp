@@ -50,7 +50,7 @@ void test_device() {
     try {
         a.sendData(pl, IPv4Address("192.168.1.0"));
         assert(false);
-    } catch(const InvalidPacketException& e) {
+    } catch(const InvalidPacketException&) {
         
     }
 }
