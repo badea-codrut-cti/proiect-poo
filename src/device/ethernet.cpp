@@ -2,7 +2,6 @@
 #include "./device.h"
 #include "../protocoale/arp.h"
 #include "../date/osi/network.h"
-#include <memory>
 #include <stdexcept>
 #include <iostream>
 
@@ -15,7 +14,7 @@ bool EthernetInterface::receiveData(const DataLinkLayer& data) {
 }
 
 EthernetInterface::EthernetInterface(Device& _device, unsigned long long maxSpeed, bool isUnnumbered):
-device(_device), macAddress(publicMACCounter += 1), unnumbered(isUnnumbered), 
+device(_device), macAddress(publicMACCounter += 1), burnAddress(macAddress), unnumbered(isUnnumbered), 
 speed(maxSpeed), maxSpeed(maxSpeed), bandwidth(maxSpeed) {
 }
 
@@ -119,6 +118,10 @@ SubnetAddress EthernetInterface::getAddress() const {
 
 bool EthernetInterface::isUnnumbered() const {
     return unnumbered;
+}
+
+MACAddress EthernetInterface::getBurntInAddress() const {
+    return burnAddress;
 }
 
 EthernetInterface* EthernetInterface::copy(Device& dev) const {

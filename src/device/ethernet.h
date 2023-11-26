@@ -19,6 +19,7 @@ class EthernetInterface {
 
         SubnetAddress address;
         MACAddress macAddress;
+        const MACAddress burnAddress;
         bool isOn{true}, unnumbered;
 
         bool receiveData(const DataLinkLayer&);
@@ -60,6 +61,8 @@ class EthernetInterface {
         [[nodiscard]] unsigned long long getSpeed() const;
 
         [[nodiscard]] MACAddress getMacAddress() const;
+
+        [[nodiscard]] MACAddress getBurntInAddress() const;
 
         [[nodiscard]] bool getState() const;
 
