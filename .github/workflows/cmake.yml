@@ -138,13 +138,6 @@ jobs:
             # This env runs address sanitizers
             runs_asan: true
 
-          - os: macos-12
-            c: gcc-12
-            cxx: g++-12
-            name: "macOS 12 GCC 12"
-            # cmake_flags:
-            # cmake_generator: Ninja
-
           - os: windows-2022
             c: cl
             cxx: cl
@@ -186,7 +179,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install ninja-build
+          sudo apt-get install ninja-build libgtk-3-dev libwebkit2gtk-4.0-dev
 
       - name: Install libc++ (Linux Clang 14)
         if: runner.os == 'Linux' && matrix.runs_msan == true
@@ -219,6 +212,18 @@ jobs:
           custom_flags: ${{ matrix.cmake_flags }}
           warnings_as_errors: 'ON'
 
+      - name: Configure Webview2 (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          cd %BUILD_DIR%/_deps/webview-src
+          ./script/build.bat info clean deps
+
+      - name: Copy webview files
+        if: runner.os == 'Windows'
+        run: |
+          cp ${BUILD_DIR}/_deps/webview-src/build/external/libs/Microsoft.Web.WebView*/build/native/include/* ${BUILD_DIR}/_deps/webview-src
+
       - name: Build
         # Execute the build using N jobs (-jN)
         run: cmake --build "${BUILD_DIR}" --config ${BUILD_TYPE} -j6
@@ -239,15 +244,6 @@ jobs:
           mkdir lib
           cp /Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib lib
           install_name_tool -change @rpath/libclang_rt.asan_osx_dynamic.dylib @executable_path/lib/libclang_rt.asan_osx_dynamic.dylib ${{ env.ZIP_NAME }}/${{ env.EXECUTABLE_NAME }}
-          mv lib ${{ env.ZIP_NAME }}/
-
-      - name: Copy missing dylibs (g++)
-        if: runner.os == 'macOS' && startsWith(matrix.cxx, 'g++')
-        run: |
-          mkdir lib
-          cp /usr/local/opt/gcc@12/lib/gcc/12/libstdc++.6.dylib /usr/local/opt/gcc@12/lib/gcc/12/libgcc_s.1.1.dylib lib
-          install_name_tool -change /usr/local/opt/gcc@12/lib/gcc/12/libstdc++.6.dylib @executable_path/lib/libstdc++.6.dylib ${{ env.ZIP_NAME }}/${{ env.EXECUTABLE_NAME }}
-          install_name_tool -change /usr/local/opt/gcc@12/lib/gcc/12/libgcc_s.1.1.dylib @executable_path/lib/libgcc_s.1.1.dylib ${{ env.ZIP_NAME }}/${{ env.EXECUTABLE_NAME }}
           mv lib ${{ env.ZIP_NAME }}/
 
       - name: Copy missing dlls
