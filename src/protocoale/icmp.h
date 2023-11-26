@@ -33,5 +33,5 @@ class ICMPPayload : public L2Payload {
 
         [[nodiscard]] ICMPType getType() const;
 
-        // [[nodiscard]] uint8_t getCode() const;
+        [[nodiscard]] uint8_t getCode() const;
 };  

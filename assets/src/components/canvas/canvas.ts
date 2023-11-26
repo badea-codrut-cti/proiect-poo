@@ -71,7 +71,7 @@ export class TopologyCanvas {
     private async createCanvasElement(canvas: HTMLElement) {
         let devElement = document.createElement("div");
         devElement.classList.add("draggable");
-        devElement.setAttribute("objectId", `${this.idCounter}`);
+        devElement.setAttribute("objectid", `${this.idCounter}`);
         devElement.style.position = "absolute";
         let data = await this.handleElementCreation(devElement, this.activeCursorType) as {type: ObjectTypes, data: Object};
         let obj: CanvasObject = {
@@ -98,7 +98,7 @@ export class TopologyCanvas {
 
         let overlay = document.createElement("div");
         overlay.id = "overlay-canvas";
-        canvas.appendChild(overlay);
+        document.body.appendChild(overlay);
 
         this.canvasBoundingBox = canvas.getBoundingClientRect();
 
@@ -160,6 +160,10 @@ export class TopologyCanvas {
 
     setDeviceTarget(cvDevice: CanvasDevice) {
         this.deviceTarget = cvDevice;
+    }
+
+    getRawElement(objectId: number) {
+        return Array.from(this.canvas.children).find(el => parseInt(el.getAttribute("objectid")) == objectId);
     }
 
     get cursorType() {

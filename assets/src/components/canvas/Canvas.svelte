@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { TopologyCanvas } from "./canvas";
+    import { CursorType } from "../../lib/types/entity";
 
     let canvas: HTMLElement;
     onMount(() => {

@@ -13,7 +13,10 @@ export enum Connections {
 export type EthernetInterface = {
     ip: {
         address: string,
-        subnetMask: string
+        subnetMask: {
+            dotNotation: string,
+            slashNotation: number
+        }
     },
     isOn: boolean,
     isUnnumbered: boolean,
@@ -21,7 +24,7 @@ export type EthernetInterface = {
     /**
      * The burn-in address to fall back to in case the MAC address was overridden and reset.
      * The logic is still handled on the backend, however. 
-     * For the most part this information is redundant on the frontend.
+     * For the most part, this information is redundant on the frontend.
      */
     hardwareAddress: string, 
     maxSpeed: number,
@@ -34,3 +37,8 @@ export type Device = {
     interfaces: EthernetInterface[],
     isOn: boolean
 };
+
+export type ConnectTuple = {
+    deviceIndex: number,
+    interfaceIndex: number
+}

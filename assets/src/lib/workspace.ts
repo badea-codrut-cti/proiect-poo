@@ -10,7 +10,10 @@ if (import.meta.env.DEV) {
                     interfaces: [{
                         ip: {
                             address: "192.168.1.5",
-                            subnetMask: "255.255.255.0"
+                            subnetMask: {
+                                dotNotation: "255.255.255.0",
+                                slashNotation: 24
+                            }
                         },
                         isOn: true,
                         isUnnumbered: false, 
@@ -22,6 +25,12 @@ if (import.meta.env.DEV) {
                     isOn: true
                 }
             });
+        });
+    }
+
+    window["wDeviceConnect"] = (a, b) => {
+        return new Promise(res => {
+            res({success: true});
         });
     }
 }

@@ -19,9 +19,9 @@ ICMPPayload::ICMPType ICMPPayload::getType() const {
     return plType;
 }
 
-/*uint8_t ICMPPayload::getCode() const {
+uint8_t ICMPPayload::getCode() const {
     return plCode;
-}*/
+}
 
 void ICMPPayload::print(std::ostream& o) const {
     o << "ICMP Payload\n";
