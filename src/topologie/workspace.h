@@ -16,6 +16,8 @@ class Workspace {
         unsigned int addDevice(Device*);
 
         std::string WDeviceAddParser(std::string);
+
+        std::string WDeviceConnectParser(std::string);
         
         static Workspace& getWorkspace();
 };
