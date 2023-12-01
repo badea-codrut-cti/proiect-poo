@@ -48,4 +48,6 @@ class DataLinkLayer {
         friend std::ostream& operator<<(std::ostream&, const DataLinkLayer&);
 };
 
+std::ostream& operator<<(std::ostream&, const DataLinkLayer::L2TypeField&);
+
 #endif

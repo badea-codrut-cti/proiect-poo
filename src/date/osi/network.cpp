@@ -45,3 +45,46 @@ std::ostream& operator<<(std::ostream& os, const NetworkLayer& other) {
     os << "Destination IP address: " << other.destination << "\n";
 	return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const NetworkLayer::IPProtocolType& l3type) {
+    switch (l3type) {
+        case NetworkLayer::ICMP: {
+            os << "ICMP";
+            break;
+        }
+        case NetworkLayer::IPV4: {
+            os << "IPV4";
+            break;
+        }
+        case NetworkLayer::OSPF: {
+            os << "OSPF";
+            break;
+        }
+        case NetworkLayer::TCP: {
+            os << "TCP";
+            break;
+        }
+        case NetworkLayer::UDP: {
+            os << "UDP";
+            break;
+        }
+        case NetworkLayer::AH: {
+            os << "Authentication";
+            break;
+        }
+        case NetworkLayer::ESP:
+        case NetworkLayer::GRE: {
+            os << "Encapsulation";
+            break;
+        }
+        case NetworkLayer::SCTP: {
+            os << "SCTP";
+            break;
+        }
+        default: {
+            os << "Layer 3";
+            break;
+        }
+    }
+    return os;
+}

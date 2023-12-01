@@ -5,7 +5,7 @@
 #include "../subnetaddress.h"
 
 class InvalidFrameException : public std::exception {
-    private: 
+    protected: 
     std::string msg;
 
     public:
@@ -26,8 +26,6 @@ class InvalidPayloadException : public InvalidFrameException {
     public:
         explicit InvalidPayloadException(DataLinkLayer::L2TypeField);
         explicit InvalidPayloadException(NetworkLayer::IPProtocolType);
-
-        [[nodiscard]] const char* what() const noexcept override;
 };
 
 //TODO: Fix naming scheme, MACAddress is part of the "frame", not the "packet"

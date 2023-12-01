@@ -96,7 +96,8 @@ jobs:
       - name: Compile the Svelte frontent
         run: | 
           cd assets
-          npm install && npm run build
+          npm install
+          node builder.js
           cd ..
 
       - name: Configure CMake

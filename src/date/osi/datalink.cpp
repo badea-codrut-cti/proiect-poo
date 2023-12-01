@@ -55,3 +55,40 @@ std::ostream& operator<<(std::ostream& os, const DataLinkLayer& other) {
     os << "Destination MAC: " << other.destination << "\r\n";
 	return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const DataLinkLayer::L2TypeField& l2type) {
+    switch (l2type) {
+        case DataLinkLayer::ARP: {
+            os << "ARP";
+            break;
+        }
+        case DataLinkLayer::IPV4: {
+            os << "IPv4";
+            break;
+        }        
+        case DataLinkLayer::IPV6: {
+            os << "IPv6";
+            break;
+        }
+        case DataLinkLayer::LLDP: {
+            os << "LLDP";
+            break;
+        }
+        case DataLinkLayer::MPLS: {
+            os << "MPLS";
+            break;
+        }
+        case DataLinkLayer::DOT1Q:
+        case DataLinkLayer::DOT1X:
+        case DataLinkLayer::VLAN_CTAG: {
+            os << "VLAN";
+            break;
+        }
+
+        default: {
+            os << "Layer 2";
+            break;
+        }
+    }
+    return os;
+}

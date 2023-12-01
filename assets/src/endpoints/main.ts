@@ -1,7 +1,7 @@
-import PCMenu from "./components/menus/pc/PCMenu.svelte";
+import App from './App.svelte'
 import "./lib/workspace";
 
-const app = new PCMenu({
+const app = new App({
   target: document.getElementById('app'),
 })
 

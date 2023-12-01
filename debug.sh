@@ -9,6 +9,7 @@ cppcheck --enable=all \
   --project="./build/compile_commands.json" \
   --suppress=missingIncludeSystem \
   --suppress=unmatchedSuppression \
+  --suppress=preprocessorErrorDirective \
   --suppress=useStlAlgorithm 
 
 cd build

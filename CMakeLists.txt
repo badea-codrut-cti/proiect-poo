@@ -110,14 +110,14 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     file(GLOB_RECURSE ${PROJECT_NAME}_EXAMPLES "examples/*.cpp" "examples/**/*.cpp")
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_EXAMPLES})
 else()
-    file(GLOB_RECURSE ASSET_FILES "assets/dist/*")
+    file(GLOB_RECURSE ASSET_FILES "assets/build/*")
     foreach(FILE ${ASSET_FILES})
         get_filename_component(FILE_WE ${FILE} NAME)
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
             COMMAND xxd -i ${FILE_WE} ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h
             DEPENDS ${FILE}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/assets/dist
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/assets/build
         )
         list(APPEND GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${FILE_WE}.h)
     endforeach()

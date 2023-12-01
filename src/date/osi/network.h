@@ -48,4 +48,6 @@ class NetworkLayer: public DataLinkLayer {
         friend std::ostream& operator<<(std::ostream&, const NetworkLayer&);
 };
 
+std::ostream& operator<<(std::ostream&, const NetworkLayer::IPProtocolType&);
+
 #endif
