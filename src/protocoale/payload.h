@@ -6,17 +6,13 @@
 
 class L2Payload {
     protected:
-        virtual void print(std::ostream&) const {
-
-        }
+        virtual void print(std::ostream&) const = 0;
     public:
         L2Payload() = default;
         L2Payload(const L2Payload&) = default;
         virtual ~L2Payload() = default;
 
-        [[nodiscard]] virtual L2Payload* clone() const {
-            return new L2Payload(*this);
-        }
+        [[nodiscard]] virtual L2Payload* clone() const = 0;
 
         friend std::ostream& operator<<(std::ostream& o, const L2Payload& pl) {
             pl.print(o);

@@ -7,6 +7,8 @@ cppcheck --enable=all \
   --inline-suppr \
   --inline-suppr \
   --project="./build/compile_commands.json" \
+  -i "build" --suppress='*:"build"/*' \
+  -i "src/topologie" --suppress='*:"src/topologie"/*' \
   --suppress=missingIncludeSystem \
   --suppress=unmatchedSuppression \
   --suppress=preprocessorErrorDirective \

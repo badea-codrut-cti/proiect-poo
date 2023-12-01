@@ -1,9 +1,11 @@
 #include <cstdint>
 #include <ostream>
-#include <stdexcept>
 #include "../date/ipv4.h"
 #include "../date/macaddress.h"
 #include "./payload.h"
+
+#ifndef ARPPAYLOAD_H
+#define ARPPAYLOAD_H
 
 class ARPPayload : public L2Payload {
     public:
@@ -79,3 +81,5 @@ class ARPParser {
         static ARPPayload createARPReply(const MACAddress&, const MACAddress&, const IPv4Address&, const IPv4Address&);
         static std::tuple<MACAddress, MACAddress, IPv4Address, IPv4Address> parseARPPayload(const ARPPayload&);
 };
+
+#endif

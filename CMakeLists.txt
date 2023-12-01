@@ -107,6 +107,17 @@ endif()
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*.cpp" "src/**/*.cpp")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set (EXCLUDE_DIR "/topologie/")
+
+    foreach (TMP_PATH ${${PROJECT_NAME}_SOURCES})
+        string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+        if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+            list (REMOVE_ITEM ${PROJECT_NAME}_SOURCES ${TMP_PATH})
+        endif ()
+    endforeach(TMP_PATH)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     file(GLOB_RECURSE ${PROJECT_NAME}_EXAMPLES "examples/*.cpp" "examples/**/*.cpp")
     add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_EXAMPLES})
 else()

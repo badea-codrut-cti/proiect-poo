@@ -1,4 +1,5 @@
 #include <vector>
+#include <nlohmann/json.hpp>
 #include "../device/device.h"
 
 class Workspace {
@@ -18,6 +19,8 @@ class Workspace {
         std::string WDeviceAddParser(std::string);
 
         std::string WDeviceConnectParser(std::string);
+
+        std::string WOpenDeviceSettings(std::string);
         
         static Workspace& getWorkspace();
 };

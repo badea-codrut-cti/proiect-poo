@@ -1,5 +1,6 @@
 #include "address.h"
 #include "device.h"
+#include "interface.h"
 #include "./topologies/labs.h"
 
 int main() {
@@ -9,5 +10,6 @@ int main() {
     arp();
     clone();
     labs();
+    ethernet_interface();
     return 0;
 }

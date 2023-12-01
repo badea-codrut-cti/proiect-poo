@@ -39,6 +39,8 @@ void test_ipv4() {
     // Automatic subnet mask notation from class
     SubnetAddress add3(IPv4Address{"192.168.1.1"});
     assert(add3.getMaskDotNotation() == "255.255.255.0");
+
+    assert(add3.getMaskSlashNotation() == 24);
 }
 
 void test_device() {

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   viewBox="0 0 213 213"
+   version="1.1"
+   id="svg5303"
+   xml:space="preserve"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="terminal.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview5305"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.39002572"
+     inkscape:cx="405.10149"
+     inkscape:cy="738.41284"
+     inkscape:window-width="1440"
+     inkscape:window-height="843"
+     inkscape:window-x="0"
+     inkscape:window-y="26"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" /><defs
+     id="defs5300" /><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"><path
+       style="fill:#69b3e1;fill-opacity:1;stroke:#000000;stroke-width:5.3;stroke-dasharray:none"
+       d="M 196.25248,26.734758 33.993873,40.034511 11.344122,40.152629 21.487655,180.15078 45.979185,179.87541 202.37709,141.29724 Z"
+       id="path5436" /><path
+       style="fill:none;stroke:#000000;stroke-width:5.3;stroke-dasharray:none"
+       d="M 35.613313,39.792925 45.20716,179.03418"
+       id="path5803" /><path
+       style="fill:#777f84;fill-opacity:1;stroke:#000000;stroke-width:5.3;stroke-dasharray:none;stroke-opacity:1"
+       d="M 185.18845,34.979993 46.437396,50.086566 61.470764,165.92651 187.73106,134.51631 Z"
+       id="path5805" /><text
+       xml:space="preserve"
+       style="font-size:141.111px;font-family:'Open Sans', sans-serif;-inkscape-font-specification:'Open Sans, sans-serif';white-space:pre;inline-size:189.956;fill:#69b3e1;fill-opacity:1;stroke:#000000;stroke-width:5.3;stroke-dasharray:none;stroke-opacity:1"
+       x="60.303406"
+       y="64.45269"
+       id="text9707"
+       transform="rotate(-6.9229533,773.48254,166.36578)"><tspan
+         x="60.303406"
+         y="64.45269"
+         id="tspan9990"><tspan
+           style="fill:#ffffff;stroke:#ffffff"
+           id="tspan9988">&gt;</tspan></tspan></text></g></svg>

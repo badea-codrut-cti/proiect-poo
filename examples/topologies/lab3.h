@@ -1,6 +1,26 @@
 #include "../../src/device/devices/end_device.h"
 #include "../../src/device/devices/l2switch.h"
 #include "../../src/device/devices/router.h"
+#include "../../src/date/osi/network.h"
+#include "../../src/protocoale/icmp.h"
+
+bool onICMPReceive(const DataLinkLayer& data, const MACAddress&) {
+    if (data.getL2Type() != DataLinkLayer::IPV4)
+        return false;
+
+    try {
+        auto& packet = dynamic_cast<const NetworkLayer&>(data);
+        if (packet.getL3Protocol() != NetworkLayer::ICMP)
+            return false;
+
+        auto payload = dynamic_cast<const ICMPPayload*>(packet.getPayload());
+
+        std::cout << "Bon received reply " << (int) payload->getType() << " with code " << (int) payload->getCode() << "\n";
+        return true;
+    } catch(const std::bad_cast&) {
+        return false;
+    }
+}
 
 void lab3() {
     EndDevice brasov, bon;
@@ -34,6 +54,7 @@ void lab3() {
     sw_bon.setHostname("SW-BON");
     r_bon.getNetworkAdapter()[0].setIpAddress(SubnetAddress(IPv4Address{"188.26.2.1"}, 24));
 
-    L2Payload pl;
-    bon.sendData(pl, brasov.getAddress());
+    bon.registerFuncListener(onICMPReceive);
+
+    bon.sendPing(brasov.getAddress());
 }

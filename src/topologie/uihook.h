@@ -1,3 +1,5 @@
-#include <webview.h>
+#include "../device/device.h"
 
-void hookMainWindow(webview::webview&);
+void hookMainWindow();
+
+void hookSettingsWindow(Device*);

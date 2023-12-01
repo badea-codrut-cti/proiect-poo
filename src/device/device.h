@@ -1,6 +1,11 @@
 #include "./ethernet.h"
 #include "./adapter.h"
+#include "../date/osi/network.h"
+#include "../protocoale/icmp.h"
+#include "../protocoale/arp.h"
 #include <map>
+#include <functional>
+#include <vector>
 
 #ifndef DEVICE_H
 #define DEVICE_H
@@ -10,6 +15,7 @@ const std::string DEFAULT_DEVICE_HOSTNAME = "Device";
 class Device {
     private:
         std::map<IPv4Address, MACAddress> arpCache{};
+        std::vector<std::function<bool(const DataLinkLayer&, const MACAddress&)>> listeners{};
 
     protected:
         bool isOn{true};
@@ -20,9 +26,11 @@ class Device {
 
         MACAddress getArpEntryOrBroadcast(const IPv4Address&);
 
+        bool checkPingRequest(const DataLinkLayer&, const MACAddress&);
+
         virtual bool handleARPRequest(const DataLinkLayer&, const MACAddress&);
 
-        virtual bool handlePingRequest(const DataLinkLayer&, const MACAddress&);
+        virtual bool handlePingRequest(const NetworkLayer&, const MACAddress&);
 
         virtual bool interfaceCallback(const DataLinkLayer&, uint8_t);
 
@@ -56,6 +64,8 @@ class Device {
         virtual bool receiveData(const DataLinkLayer&, EthernetInterface&);
 
         friend std::ostream& operator<<(std::ostream&, const Device&);
+
+        unsigned long long registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)>&);
 };
 
 #endif

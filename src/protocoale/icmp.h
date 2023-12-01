@@ -1,5 +1,8 @@
 #include "./payload.h"
 
+#ifndef ICMP_H
+#define ICMP_H
+
 class ICMPPayload : public L2Payload {
     public:
         enum ICMPType : uint8_t {
@@ -35,3 +38,5 @@ class ICMPPayload : public L2Payload {
 
         [[nodiscard]] uint8_t getCode() const;
 };  
+
+#endif

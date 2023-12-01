@@ -1,6 +1,5 @@
 #include "./ethernet.h"
 #include "./device.h"
-#include "../protocoale/arp.h"
 #include "../date/osi/network.h"
 #include <stdexcept>
 #include <iostream>

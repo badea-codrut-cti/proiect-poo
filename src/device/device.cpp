@@ -1,8 +1,6 @@
 #include "./device.h"
 #include "./adapter.h"
 #include "../date/osi/network.h"
-#include "../protocoale/arp.h"
-#include "../protocoale/icmp.h"
 #include "../date/osi/osiexcept.h"
 #include <stdexcept>
 #include <iostream>
@@ -63,10 +61,9 @@ bool Device::interfaceCallback([[maybe_unused]]const DataLinkLayer& _data, [[may
     return true;
 }
 
-bool Device::handlePingRequest(const DataLinkLayer& data, const MACAddress& mac) {
+bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) {
     try {
-        auto packet = dynamic_cast<const NetworkLayer&>(data);
-
+        auto& packet = dynamic_cast<const NetworkLayer&>(data);
         if (packet.getL3Protocol() != NetworkLayer::ICMP)
             return false;
 
@@ -75,23 +72,26 @@ bool Device::handlePingRequest(const DataLinkLayer& data, const MACAddress& mac)
 
         try {
             auto payload = dynamic_cast<const ICMPPayload*>(data.getPayload());
-            
+
             if (payload->getType() != ICMPPayload::ECHO_REQUEST)
                 return false;
 
-            ICMPPayload pl(ICMPPayload::ECHO_REPLY, 0);
-            DataLinkLayer l2(data.getMACSource(), data.getMACDestination(), pl, DataLinkLayer::IPV4);
-            NetworkLayer l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
-            adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
-            return true;
+            return handlePingRequest(packet, mac);
         } catch(const std::bad_cast&) {
             throw InvalidPayloadException(NetworkLayer::ICMP);
         }
-        return false;
     } catch(const std::bad_cast&) {
         // Why would we be passed l2 here?
         return false;
     }
+}
+
+bool Device::handlePingRequest(const NetworkLayer& packet, const MACAddress& mac) {
+    ICMPPayload pl(ICMPPayload::ECHO_REPLY, 0);
+    DataLinkLayer l2(packet.getMACDestination(), packet.getMACSource(), pl, DataLinkLayer::IPV4);
+    NetworkLayer l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
+    adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
+    return true;
 }
 
 bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
@@ -135,8 +135,13 @@ bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface
         return true;
     }
 
-    if (data.getL2Type() == DataLinkLayer::IPV4 && handlePingRequest(data, interface.getMacAddress())) {
+    if (data.getL2Type() == DataLinkLayer::IPV4 && checkPingRequest(data, interface.getMacAddress())) {
         return true;
+    }
+
+    for (const auto& listener : listeners) {
+        if (listener(data, interface.getMacAddress()))
+            return true;
     }
 
     int fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
@@ -169,6 +174,11 @@ hostname(other.hostname) {
 
 Device* Device::clone() const {
     return new Device(*this);
+}
+
+unsigned long long Device::registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)> &func) {
+    listeners.push_back(func);
+    return listeners.size()-1;
 }
 
 std::ostream& operator<<(std::ostream& os, const Device& device) {

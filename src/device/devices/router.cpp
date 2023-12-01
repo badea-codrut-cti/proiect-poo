@@ -44,7 +44,7 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
 
                 ICMPPayload pl(ICMPPayload::DEST_UNREACHABLE, 0);
                 DataLinkLayer l2(adapter[fIndex].getMacAddress(), getArpEntryOrBroadcast(icmpReturn), pl, DataLinkLayer::IPV4);
-                NetworkLayer l3(l2, adapter[fIndex].getAddress(), frame.getIPSource(), DEFAULT_TTL);
+                NetworkLayer l3(l2, adapter[fIndex].getAddress(), frame.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
                 adapter[fIndex].sendData(l3);
             }
             return false;

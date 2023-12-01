@@ -25,6 +25,6 @@ uint8_t ICMPPayload::getCode() const {
 
 void ICMPPayload::print(std::ostream& o) const {
     o << "ICMP Payload\n";
-    o << "Type: " << plType << "\n";
-    o << "Code: " << plCode << "\n";
+    o << "Type: " << (int) plType << "\n";
+    o << "Code: " << (int) plCode << "\n";
 }

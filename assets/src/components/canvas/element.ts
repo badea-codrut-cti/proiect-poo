@@ -1,14 +1,20 @@
-import type { Device, EthernetInterface } from "../../lib/types/device";
+import { Devices, type Device, type EthernetInterface } from "../../lib/types/device";
 import { CursorType, type CanvasObject, type CanvasDevice } from "../../lib/types/entity";
 import { TopologyCanvas } from "./canvas";
 import { connectElements } from "./draw";
 const icons: { [char: string]: {default: string}} = import.meta.glob('../../icons/toolbar/ports/*.svg', {  eager: true });
 
 export function handleObjectClick(rawObject: HTMLElement, cvObject: CanvasObject) {
-    if (TopologyCanvas.getInstance().cursorType != CursorType.CONNECT)
-        return;
-
-    showInterfacePrompt(rawObject, cvObject as unknown as CanvasDevice);
+    switch (TopologyCanvas.getInstance().cursorType) {
+        case CursorType.CONNECT: {
+            showInterfacePrompt(rawObject, cvObject as unknown as CanvasDevice);
+            break;
+        }
+        case CursorType.DEFAULT: {
+            window.wOpenDeviceSettings({deviceIndex: cvObject.deviceIndex, deviceType: Devices.DESKTOP});
+            break;
+        }
+    }
 }
 
 let activePort: {objectIndex: number, deviceIndex: number, interfaceIndex: number} | undefined;
@@ -20,7 +26,7 @@ function handleConnectClick(objectIndex: number, deviceIndex: number, interfaceI
         let instance = TopologyCanvas.getInstance();
         connectElements(instance.getRawElement(objectIndex), instance.getRawElement(activePort.objectIndex));
         activePort = undefined;
-        TopologyCanvas.getInstance().setCursorType(CursorType.SELECT);
+        TopologyCanvas.getInstance().setCursorType(CursorType.DEFAULT);
     }
     else 
         activePort = newPort;
