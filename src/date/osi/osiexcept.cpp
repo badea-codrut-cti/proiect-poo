@@ -7,7 +7,7 @@ std::string ipMessage(const SubnetAddress& addr) {
 
 InvalidPayloadException::InvalidPayloadException(DataLinkLayer::L2TypeField l2): 
 InvalidFrameException("Invalid payload for frame type header."), 
-l2Type(l2), msgType(DataLink) {
+l2Type(l2) {
     std::ostringstream oss;
     oss << l2Type;
     msg = oss.str() + " frame header does not have a matching payload.";
@@ -15,7 +15,7 @@ l2Type(l2), msgType(DataLink) {
 
 InvalidPayloadException::InvalidPayloadException(NetworkLayer::IPProtocolType l3): 
 InvalidFrameException("Invalid payload for packet type header."),  
-l3Type(l3), msgType(Network) {
+l3Type(l3) {
     std::ostringstream oss;
     oss << l3Type;
     msg = oss.str() + " packet header does not have a matching payload.";

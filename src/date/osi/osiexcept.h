@@ -14,15 +14,9 @@ class InvalidFrameException : public std::exception {
 };
 
 class InvalidPayloadException : public InvalidFrameException {
-        enum ILayerType : uint8_t {
-            DataLink,
-            Network
-        };
-
         DataLinkLayer::L2TypeField l2Type{};
         NetworkLayer::IPProtocolType l3Type{};
 
-        ILayerType msgType{};
     public:
         explicit InvalidPayloadException(DataLinkLayer::L2TypeField);
         explicit InvalidPayloadException(NetworkLayer::IPProtocolType);
