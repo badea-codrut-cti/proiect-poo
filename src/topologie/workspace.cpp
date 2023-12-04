@@ -5,6 +5,7 @@
 #include "./jsonify_data.h"
 #include "uiexcept.h"
 #include "uihook.h"
+#include "device_factory.h"
 
 using json = nlohmann::json;
 
@@ -18,8 +19,7 @@ unsigned int Workspace::addDevice(Device* dev) {
     return devices.size()-1;
 }
 
-std::string Workspace::WDeviceAddParser(std::string str) {
-    json data = json::parse(str);
+json Workspace::WDeviceAddParser(json data) {
     json device = data[0];
 
     if (device["deviceType"].empty())
@@ -27,15 +27,9 @@ std::string Workspace::WDeviceAddParser(std::string str) {
 
     std::string deviceType = device["deviceType"].get<std::string>();
 
-    Device* pDevice{nullptr};
+    DeviceFactory factory;
 
-    if (deviceType == "router") {
-        pDevice = new Router();
-    } else if (deviceType == "pc") {
-        pDevice = new EndDevice();
-    } else if (deviceType == "l2switch") {
-        pDevice = new L2Switch();
-    } else throw UIParameterException("deviceType");
+    Device* pDevice = factory.setType(deviceTypeFromString(deviceType)).create();
 
     if (pDevice == nullptr)
         throw UIException("Failed allocation of new device.");
@@ -52,12 +46,10 @@ std::string Workspace::WDeviceAddParser(std::string str) {
     output["device"] = outDevice;
 
     addDevice(pDevice);
-    return output.dump();
+    return output;
 }
 
-std::string Workspace::WDeviceConnectParser(std::string str) {
-    json data = json::parse(str);
-    
+json Workspace::WDeviceConnectParser(json data) {
     unsigned long long devIndex1 = data[0]["deviceIndex"], devIndex2 = data[1]["deviceIndex"];
     uint8_t intIndex1 = data[0]["interfaceIndex"], intIndex2 = data[1]["interfaceIndex"];
 
@@ -66,9 +58,7 @@ std::string Workspace::WDeviceConnectParser(std::string str) {
     return "{'success': true}";
 }
 
-std::string Workspace::WOpenDeviceSettings(std::string str) {
-    json data = json::parse(str);
-
+json Workspace::WOpenDeviceSettings(json data) {
     if (data[0]["deviceIndex"].empty())
         throw UIException("Device index not specified.");
 
@@ -78,9 +68,24 @@ std::string Workspace::WOpenDeviceSettings(std::string str) {
         throw UIException("Device index out of range.");
 
     hookSettingsWindow(devices[devIndex]);
-    //alter_window.bind("wDeviceAdd",windowDeviceAdd);
-    //alter_window.bind("wDeviceConnect", windowDeviceConnect);
-    return "";
+    return "{'success': true}";
+}
+
+json Workspace::WToggleDeviceState(json data) {
+    unsigned long long devIndex = data[0];
+
+    if (devices.size() < devIndex)
+        throw UIParameterException("deviceIndex");
+    
+    if (devices[devIndex]->getState())
+        devices[devIndex]->turnOff();
+    else 
+        devices[devIndex]->turnOn();
+
+    json ret = json::object();
+    ret["success"] = true;
+    ret["newState"] = devices[devIndex]->getState();
+    return ret;
 }
 
 Workspace& Workspace::getWorkspace() {

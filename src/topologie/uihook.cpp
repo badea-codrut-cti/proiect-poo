@@ -10,13 +10,26 @@
 
 using json = nlohmann::json;
 
+void hookWarningWindow(const std::string& str) {
+    webview::webview warning_window(false, nullptr);
+    warning_window.set_title("Warning");
+    warning_window.set_html(str);
+    warning_window.run();
+    warning_window.terminate();
+}
+
 std::string windowDeviceAdd(std::string str) {
     try {
-        return Workspace::getWorkspace().WDeviceAddParser(std::move(str));
+        json data = json::parse(std::move(str));
+        json ret = Workspace::getWorkspace().WDeviceAddParser(data);
+        return ret;
     } catch(const UIParameterException& ex) {
+        std::string message = ex.what();
+        hookWarningWindow(message);
+
         json errReturn = json::object();
         errReturn["success"] = false;
-        errReturn["error"] = ex.what();
+        errReturn["error"] = message;
 
         return errReturn.dump(); 
     } catch(const UIException& ex) {
@@ -27,7 +40,9 @@ std::string windowDeviceAdd(std::string str) {
 
 std::string windowOpenDeviceSettings(std::string str) {
     try {
-        return Workspace::getWorkspace().WOpenDeviceSettings(std::move(str));
+        json data = json::parse(std::move(str));
+        json ret = Workspace::getWorkspace().WOpenDeviceSettings(data);
+        return ret;
     } catch(const UIException& ex) {
         std::cout << ex.what();
         exit(-1);
@@ -35,7 +50,25 @@ std::string windowOpenDeviceSettings(std::string str) {
 }
 
 std::string windowDeviceConnect(std::string str) {
-    return Workspace::getWorkspace().WDeviceConnectParser(std::move(str));
+    json data = json::parse(std::move(str));
+    return Workspace::getWorkspace().WDeviceConnectParser(data);
+}
+
+std::string windowToggleDeviceState(std::string str) {
+    try {
+        json data = json::parse(std::move(str));
+        json ret = Workspace::getWorkspace().WToggleDeviceState(data);
+        return ret;
+    } catch(const UIParameterException& ex) {
+        std::string message = ex.what();
+        hookWarningWindow(message);
+
+        json errReturn = json::object();
+        errReturn["success"] = false;
+        errReturn["error"] = message;
+
+        return errReturn.dump(); 
+    }
 }
 
 void hookMainWindow() {

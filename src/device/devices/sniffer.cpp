@@ -16,3 +16,8 @@ bool TrafficSniffer::interfaceCallback(const DataLinkLayer& data, uint8_t interf
 
     return true;
 }
+
+void TrafficSniffer::turnOff() {
+    sniffedData.clear();
+    Device::turnOff();
+}

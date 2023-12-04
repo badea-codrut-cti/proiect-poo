@@ -13,4 +13,6 @@ class L2Switch: public Device {
     
     public:
         L2Switch();
+
+        void turnOff() override;
 };

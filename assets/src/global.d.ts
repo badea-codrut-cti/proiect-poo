@@ -5,6 +5,7 @@ declare global {
     interface Window {
         wDeviceAdd: (device: CanvasDevice) => Promise<{success: boolean, device?: Device, error?: string}>,
         wDeviceConnect: (a: ConnectTuple, b: ConnectTuple) => Promise<{success: boolean, error?: string}>,
-        wOpenDeviceSettings: ({deviceIndex: number, deviceType: Devices}) => Promise<void>
+        wOpenDeviceSettings: ({deviceIndex: number, deviceType: Devices}) => Promise<void>,
+        wToggleDeviceState: (deviceIndex: number) => Promise<{success: boolean, isOn?: boolean, error?: string}>
     }
 }

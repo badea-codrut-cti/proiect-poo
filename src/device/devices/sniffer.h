@@ -4,7 +4,7 @@
 
 const std::string DEFAULT_SNIFFER_HOSTNAME = "Sniffer";
 
-class TrafficSniffer : Device {
+class TrafficSniffer : public Device {
     std::vector<std::string> sniffedData;
 
     protected:
@@ -12,4 +12,6 @@ class TrafficSniffer : Device {
 
     public:
         TrafficSniffer();
+
+        void turnOff() override;
 };

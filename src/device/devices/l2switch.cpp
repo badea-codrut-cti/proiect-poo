@@ -28,3 +28,8 @@ L2Switch::L2Switch(): Device(1, true, DEFAULT_SWITCH_HOSTNAME) {
 
     adapter.copy(*this, copyAdapter);
 }
+
+void L2Switch::turnOff() {
+    arpRouteCache.clear();
+    Device::turnOff();
+}
