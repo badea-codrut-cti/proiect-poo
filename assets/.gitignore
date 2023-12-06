@@ -24,3 +24,6 @@ build
 *.njsproj
 *.sln
 *.sw?
+
+src/main.ts
+src/global.d.ts

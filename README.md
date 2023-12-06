@@ -67,3 +67,5 @@ Simulator de protocoale si topologii de retea.
 [ICMP Parameters](https://www.iana.org/assignments/icmp-parameters/icmp-parameters.xhtml)
 
 [Webview](https://github.com/webview/webview)
+
+[Cisco Network Topology Icons](https://vecta.io/symbols/240/cisco-network-topology-icons-3015)

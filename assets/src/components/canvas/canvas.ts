@@ -4,8 +4,6 @@ import { CursorType, type CanvasObject, ObjectTypes, type CanvasDevice } from '.
 import { handleObjectClick } from './element';
 const icons: { [char: string]: {default: string}} = import.meta.glob('../../icons/toolbar/*.svg', {  eager: true });
 
-const overlay = document.getElementById("overlay-canvas") as HTMLElement;
-
 export class TopologyCanvas {
     private canvasBoundingBox: DOMRect;
     private canvasObjects: CanvasObject[] = [];
@@ -93,8 +91,6 @@ export class TopologyCanvas {
     constructor(canvas: HTMLElement) {
         TopologyCanvas.instance = this;
         this.canvas = canvas;
-        let div = document.createElement("div");
-        canvas.appendChild(div);
 
         let overlay = document.createElement("div");
         overlay.id = "overlay-canvas";
@@ -102,7 +98,7 @@ export class TopologyCanvas {
 
         this.canvasBoundingBox = canvas.getBoundingClientRect();
 
-        const draggable = new Draggable(div, {
+        const draggable = new Draggable(canvas, {
             draggable: "div.draggable"
         });
     
@@ -163,7 +159,7 @@ export class TopologyCanvas {
     }
 
     getRawElement(objectId: number) {
-        return Array.from(this.canvas.children).find(el => parseInt(el.getAttribute("objectid")) == objectId);
+        return Array.from(this.canvas.children).find(el => parseInt(el.getAttribute("objectid") as string) == objectId);
     }
 
     get cursorType() {

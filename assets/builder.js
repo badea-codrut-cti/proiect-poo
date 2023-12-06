@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { build } from 'vite';
 
 const endpoints = fs.readdirSync("src/endpoints");
@@ -17,7 +18,9 @@ function func() {
     if (index >= endpoints.length)
         return;
 
-    fs.cpSync("src/endpoints/" + endpoints[index], "src/main.ts");
+    let endpointPath = path.join("src/endpoints/", endpoints[index]); 
+    fs.cpSync(path.join(endpointPath, "/main.ts"), "src/main.ts");
+    fs.cpSync(path.join(endpointPath, "/global.d.ts"), "src/global.d.ts");
 
     build({
     root: '.', // project root directory
