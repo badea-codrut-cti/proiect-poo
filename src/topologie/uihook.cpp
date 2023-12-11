@@ -1,9 +1,9 @@
 #include "uihook.h"
 #include <nlohmann/json.hpp>
+#include <string>
 #include <utility>
 #include "workspace.h"
 #include "uiexcept.h"
-#include <webview.h>
 #include "../../build/main.html.h"
 #include "../../build/pc.html.h"
 #include "jsonify_data.h"
@@ -71,19 +71,30 @@ std::string windowToggleDeviceState(std::string str) {
     }
 }
 
-void hookMainWindow() {
-    webview::webview window(false, nullptr);
-    window.set_title("Autodragan");
-    window.set_size(1200, 900, 0);
+UIWindow::UIWindow() {
+    window = new webview::webview(false, nullptr);
+    window->set_title("Autodragan");
+    window->set_size(1200, 900, 0);
     std::string content(reinterpret_cast<char*>(main_html), main_html_len);
-    window.set_html(content);
-    window.bind("wDeviceAdd",windowDeviceAdd);
-    window.bind("wDeviceConnect", windowDeviceConnect);
-    window.bind("wOpenDeviceSettings", windowOpenDeviceSettings);
-    window.run();
+    window->set_html(content);
+    window->bind("wDeviceAdd",windowDeviceAdd);
+    window->bind("wDeviceConnect", windowDeviceConnect);
+    window->bind("wOpenDeviceSettings", windowOpenDeviceSettings);
+    window->run();
+    window->terminate();
 }
 
-void hookSettingsWindow(Device* dev) {
+UIWindow UIWindow::instance{};
+
+UIWindow& UIWindow::getInstance() {
+    return instance;
+}
+
+void UIWindow::sendDeviceUpdateNotice(uint64_t devId) {
+    window->eval("alert('" + std::to_string(devId) + "')");
+}
+
+void UIWindow::hookSettingsWindow(Device* dev) {
     json device = deviceToJson(dev);
     webview::webview alter_window(false, nullptr);
     alter_window.set_title(dev->getHostname());

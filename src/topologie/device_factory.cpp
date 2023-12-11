@@ -5,6 +5,7 @@
 #include "../device/devices/sniffer.h"
 #include "uiexcept.h"
 #include <sstream>
+#include <stdexcept>
 
 DeviceFactory::DeviceFactory() : devType(EndDevice) {}
 
@@ -14,7 +15,7 @@ DeviceFactory& DeviceFactory::setType(DeviceFactory::DeviceType devType) {
 }
 
 Device* DeviceFactory::create() {
-    Device* dev;
+    Device* dev = nullptr;
 
     switch (devType) {
         case DeviceFactory::L2Switch: {
@@ -35,6 +36,10 @@ Device* DeviceFactory::create() {
         case DeviceFactory::TrafficSniffer: {
             dev = new class TrafficSniffer();
             break;
+        }
+
+        default: {
+            throw std::invalid_argument("Invalid device type.");
         }
     }
 

@@ -26,7 +26,7 @@ function handleConnectClick(objectIndex: number, deviceIndex: number, interfaceI
         //connectElements(instance.getRawElement(objectIndex) as HTMLElement, 
             //instance.getRawElement(activePort.objectIndex) as HTMLElement);
         activePort = undefined;
-        TopologyCanvas.getInstance().setCursorType(CursorType.SELECT);
+        TopologyCanvas.getInstance().setCursorType(CursorType.DEFAULT);
     }
     else 
         activePort = newPort;

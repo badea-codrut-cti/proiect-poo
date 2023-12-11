@@ -6,17 +6,20 @@
 #include "uiexcept.h"
 #include "uihook.h"
 #include "device_factory.h"
+#include <cstdint>
+#include <stdexcept>
+#include "uihook.h"
 
 using json = nlohmann::json;
 
 Workspace::~Workspace() {
-    for (Device* dev : devices)
+    for (auto dev : devices)
         delete dev;
 }
 
-unsigned int Workspace::addDevice(Device* dev) {
+uint64_t Workspace::addDevice(Device* dev) {
     devices.push_back(dev);
-    return devices.size()-1;
+    return devices.size();
 }
 
 json Workspace::WDeviceAddParser(json data) {
@@ -64,17 +67,17 @@ json Workspace::WOpenDeviceSettings(json data) {
 
     unsigned long long devIndex = data[0]["deviceIndex"];
 
-    if (devIndex >= devices.size())
+    if (devices.size() <= devIndex)
         throw UIException("Device index out of range.");
 
-    hookSettingsWindow(devices[devIndex]);
+    UIWindow::getInstance().hookSettingsWindow(devices[devIndex]);
     return "{'success': true}";
 }
 
 json Workspace::WToggleDeviceState(json data) {
     unsigned long long devIndex = data[0];
 
-    if (devices.size() < devIndex)
+    if (devices.size() <= devIndex)
         throw UIParameterException("deviceIndex");
     
     if (devices[devIndex]->getState())
@@ -88,8 +91,106 @@ json Workspace::WToggleDeviceState(json data) {
     return ret;
 }
 
+json Workspace::changeDeviceSettings(uint64_t index, json data) {
+    if (devices.size() <= index)
+        throw UIException("Index out of range in hook function.");
+
+    Device* dev = devices[index];
+
+    if (dev == nullptr)
+        throw UIException("Device was freed prior to edit.");
+
+    if (!dev->getState())
+        throw UIStateException(*dev);
+
+    UIWindow::getInstance().sendDeviceUpdateNotice(index);
+
+    std::string editMode = data["editMode"];
+    if (editMode == "device") {
+        if (!data["hostname"].empty()) {
+            dev->setHostname(data["hostname"]);
+        }
+
+        return "{'success': true}";
+    } else if (editMode == "interface") {
+        unsigned long long interfaceIndex = data["interfaceIndex"];
+
+        if (dev->getNetworkAdapter().interfaceCount() <= interfaceIndex)
+            throw UIParameterException("interfaceIndex");
+
+        EthernetInterface& interf = dev->getNetworkAdapter()[interfaceIndex];
+
+        if (!data["ip"].empty()) {
+            if (interf.isUnnumbered())
+                throw UIException("Cannot assign IP address to unnumbered interface");
+
+            if (!data["ip"]["address"].empty()) {
+                IPv4Address newIp = IPv4Address(
+                    data["ip"]["address"].get<std::string>()
+                );
+                
+                if (!data["subnetMask"].empty()) {
+                   if (!data["subnet"]["slashNotation"].empty()) {
+                        try {
+                            interf.setIpAddress(
+                                SubnetAddress(
+                                    newIp,
+                                    data["subnet"]["slashNotation"]
+                                )
+                            );
+                        } catch(const std::invalid_argument&) {
+                            throw UIParameterException("ip");
+                        }
+                   }
+                } else {
+                    try {
+                        interf.setIpAddress(SubnetAddress(newIp));
+                    } catch(const std::invalid_argument&) {
+                        throw UIParameterException("ip.address");
+                    }
+                }
+
+            }
+        }
+
+        if (!data["isOn"].empty()) {
+            if (data["isOn"])
+                interf.turnOn();
+            else
+                interf.turnOff();
+        }
+
+        if (!data["macAddress"].empty()) {
+            try {
+                interf.setMacAddress(
+                    MACAddress(data["macAddress"].get<std::string>())
+                );
+            } catch(const std::invalid_argument&) {
+                throw UIParameterException("macAddress");
+            }
+        }
+
+        if (!data["speed"].empty()) {
+            try {
+                interf.setSpeed(data["speed"]);
+            } catch(const std::invalid_argument&) {
+                throw UIParameterException("speed");
+            }
+        }
+
+        return "{'success': true}";
+    } else throw UIParameterException("editMode");
+}
+
 Workspace& Workspace::getWorkspace() {
     return workspace;
+}
+
+Device* Workspace::getDevice(uint64_t devId) {
+    if (devId > devices.size())
+        throw UIParameterException("devId");
+
+    return devices[devId];
 }
 
 Workspace Workspace::workspace{};
