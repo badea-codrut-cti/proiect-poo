@@ -10,6 +10,8 @@ class SubnetAddress : public IPv4Address {
     public:
         static uint8_t getClassSubnetMask(const IPv4Address&);
 
+        static uint8_t dotMaskToCIDR(const IPv4Address&);
+
         SubnetAddress(const IPv4Address&, uint8_t);
 
         explicit SubnetAddress(const IPv4Address&);
