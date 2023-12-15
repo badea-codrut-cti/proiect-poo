@@ -7,8 +7,8 @@
 #include <sstream>
 #include <stdexcept>
 
-DeviceFactory& DeviceFactory::setType(DeviceFactory::DeviceType devType) {
-    this->devType = devType;
+DeviceFactory& DeviceFactory::setType(DeviceFactory::DeviceType deviceType) {
+    this->devType = deviceType;
     return *this;
 }
 
@@ -16,22 +16,22 @@ Device* DeviceFactory::create() {
     Device* dev = nullptr;
 
     switch (devType) {
-        case DeviceFactory::L2Switch: {
+        case DeviceFactory::l2Switch: {
             dev = new class L2Switch();
             break;
         }
 
-        case DeviceFactory::EndDevice: {
+        case DeviceFactory::endDevice: {
             dev = new class EndDevice();
             break;
         }
 
-        case DeviceFactory::Router: {
+        case DeviceFactory::router: {
             dev = new class Router();
             break;
         }
 
-        case DeviceFactory::TrafficSniffer: {
+        case DeviceFactory::trafficSniffer: {
             dev = new class TrafficSniffer();
             break;
         }
@@ -46,22 +46,22 @@ Device* DeviceFactory::create() {
 
 std::ostream& operator<<(std::ostream& os, DeviceFactory::DeviceType devType) {
     switch (devType) {
-        case DeviceFactory::L2Switch: {
+        case DeviceFactory::l2Switch: {
             os << "l2switch";
             break;
         }
 
-        case DeviceFactory::EndDevice: {
+        case DeviceFactory::endDevice: {
             os << "pc";
             break;
         }
 
-        case DeviceFactory::Router: {
+        case DeviceFactory::router: {
             os << "router";
             break;
         }
 
-        case DeviceFactory::TrafficSniffer: {
+        case DeviceFactory::trafficSniffer: {
             os << "sniffer";
             break;
         }
@@ -71,8 +71,8 @@ std::ostream& operator<<(std::ostream& os, DeviceFactory::DeviceType devType) {
 }
 
 DeviceFactory::DeviceType deviceTypeFromString(const std::string& str) {
-    DeviceFactory::DeviceType types[] = {DeviceFactory::L2Switch, DeviceFactory::EndDevice, 
-    DeviceFactory::Router, DeviceFactory::TrafficSniffer};
+    DeviceFactory::DeviceType types[] = {DeviceFactory::l2Switch, DeviceFactory::endDevice, 
+    DeviceFactory::router, DeviceFactory::trafficSniffer};
 
     for (auto type : types) {
         std::ostringstream os;

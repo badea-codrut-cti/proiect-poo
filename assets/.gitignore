@@ -27,3 +27,5 @@ build
 
 src/main.ts
 src/global.d.ts
+
+package-lock.json
