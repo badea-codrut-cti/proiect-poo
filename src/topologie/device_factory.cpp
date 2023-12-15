@@ -7,8 +7,6 @@
 #include <sstream>
 #include <stdexcept>
 
-DeviceFactory::DeviceFactory() : devType(EndDevice) {}
-
 DeviceFactory& DeviceFactory::setType(DeviceFactory::DeviceType devType) {
     this->devType = devType;
     return *this;

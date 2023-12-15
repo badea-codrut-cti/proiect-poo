@@ -10,10 +10,10 @@ class DeviceFactory {
         };
     
     private:
-        DeviceType devType;
+        DeviceType devType{EndDevice};
 
     public:
-        DeviceFactory();
+        DeviceFactory() = default;
 
         DeviceFactory& setType(DeviceType);
 
