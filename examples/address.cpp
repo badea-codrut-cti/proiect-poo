@@ -43,7 +43,8 @@ void test_ipv4() {
 
     assert(add3.getMaskSlashNotation() == 24);
 
-    assert(SubnetAddress::dotMaskToCIDR(IPv4Address("255.255.255.192")) == 26);
+    int slashMask = SubnetAddress::dotMaskToCIDR(IPv4Address("255.255.255.192"));
+    assert(slashMask == 26);
 
     try {
         SubnetAddress::dotMaskToCIDR(IPv4Address("255.255.255.193"));
