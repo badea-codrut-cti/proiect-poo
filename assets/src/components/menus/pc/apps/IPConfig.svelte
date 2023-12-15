@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { EthernetInterface } from "../../../../lib/types/device";
+    import CallbackTextarea from "../../CallbackTextarea.svelte";
 
     export let interfaces: EthernetInterface[];
 
@@ -23,11 +24,56 @@
                 index: interfaces.indexOf(port)
             }
         });
+
+        activeIndex.prop = 0;
+    }
+
+    let ipAddr: string, subnetMask: string;
+
+    let activeIndex = {
+        inProp: 0,
+
+        get prop() {
+            return this.inProp;
+        },
+
+        set prop(val) {
+            ipAddr = interfaces[val].ip.address;
+            subnetMask = interfaces[val].ip.subnetMask.dotNotation;
+            this.inProp = val;
+        }
+    }
+
+    function handleSubnetMaskChange(val: string) {
+        window.wChangeDeviceSettings({
+            editMode: "interface",
+            interfaceIndex: activeIndex.prop,
+            ip: {
+                address: ipAddr,
+                subnetMask: {
+                    dotNotation: val
+                }
+            }
+        });
+    }
+
+    function handleIPChange(val: string) {
+        if (val.split(".").length != 4) 
+            return;
+        
+
+        window.wChangeDeviceSettings({
+            editMode: "interface",
+            interfaceIndex: activeIndex.prop,
+            ip: {
+                address: val
+            }
+        });
     }
 </script>
 
 <div class="w-64">
-    <select class="block appearance-none w-full bg-white border border-gray-400">
+    <select bind:value={activeIndex.prop} class="block appearance-none w-full bg-white border border-gray-400">
         {#each parsedInterfaces as intf}
             <option value={intf.index}>{intf.name}</option>
         {/each}
@@ -38,12 +84,10 @@
 
 <div>
     <div>
-        <div class="inline-block w-32">IPv4 Address</div>
-        <textarea class="inline-block resize-none w-32 h-6 text-xs"></textarea>
+        <CallbackTextarea label={"IPv4 Address"} bind:text={ipAddr} callback={handleIPChange}/>
     </div>
     <div>
-        <div class="inline-block w-32">Subnet Mask</div>
-        <textarea class="inline-block resize-none w-32 h-6 text-xs"></textarea>
+        <CallbackTextarea label={"Subnet Mask"} bind:text={subnetMask} callback={handleSubnetMaskChange}/>
     </div>
     <div>
         <div class="inline-block w-32">Default Gateway</div>

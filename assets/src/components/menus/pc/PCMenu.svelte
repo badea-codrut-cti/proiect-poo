@@ -8,6 +8,12 @@
     window["wGetDeviceData"]().then(out => {
         device = out;
     });
+
+    window.wDeviceUpdateListener = () => {
+        window["wGetDeviceData"]().then(out => {
+            device = out;
+        });
+    }
     
     const tabs = [
         {

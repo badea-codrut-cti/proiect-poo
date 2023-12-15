@@ -20,13 +20,13 @@ class Workspace {
 
         nlohmann::json WDeviceAddParser(nlohmann::json);
 
-        nlohmann::json WDeviceConnectParser(nlohmann::json);
+        bool WDeviceConnectParser(nlohmann::json);
 
-        nlohmann::json WOpenDeviceSettings(nlohmann::json);
+        bool WOpenDeviceSettings(nlohmann::json);
 
-        nlohmann::json WToggleDeviceState(nlohmann::json);
+        bool WToggleDeviceState(nlohmann::json);
 
-        nlohmann::json changeDeviceSettings(uint64_t, nlohmann::json);
+        bool changeDeviceSettings(uint64_t, nlohmann::json);
         
         static Workspace& getWorkspace();
 };

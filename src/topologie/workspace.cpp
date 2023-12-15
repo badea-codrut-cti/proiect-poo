@@ -52,16 +52,16 @@ json Workspace::WDeviceAddParser(json data) {
     return output;
 }
 
-json Workspace::WDeviceConnectParser(json data) {
+bool Workspace::WDeviceConnectParser(json data) {
     unsigned long long devIndex1 = data[0]["deviceIndex"], devIndex2 = data[1]["deviceIndex"];
     uint8_t intIndex1 = data[0]["interfaceIndex"], intIndex2 = data[1]["interfaceIndex"];
 
     devices[devIndex1]->getNetworkAdapter()[intIndex1].
     connect(&devices[devIndex2]->getNetworkAdapter()[intIndex2]);
-    return "{'success': true}";
+    return true;
 }
 
-json Workspace::WOpenDeviceSettings(json data) {
+bool Workspace::WOpenDeviceSettings(json data) {
     if (data[0]["deviceIndex"].empty())
         throw UIException("Device index not specified.");
 
@@ -70,11 +70,11 @@ json Workspace::WOpenDeviceSettings(json data) {
     if (devices.size() <= devIndex)
         throw UIException("Device index out of range.");
 
-    UIWindow::getInstance().hookSettingsWindow(devices[devIndex]);
-    return "{'success': true}";
+    UIWindow::getInstance().hookSettingsWindow(devIndex);
+    return true;
 }
 
-json Workspace::WToggleDeviceState(json data) {
+bool Workspace::WToggleDeviceState(json data) {
     unsigned long long devIndex = data[0];
 
     if (devices.size() <= devIndex)
@@ -85,13 +85,10 @@ json Workspace::WToggleDeviceState(json data) {
     else 
         devices[devIndex]->turnOn();
 
-    json ret = json::object();
-    ret["success"] = true;
-    ret["newState"] = devices[devIndex]->getState();
-    return ret;
+    return true;
 }
 
-json Workspace::changeDeviceSettings(uint64_t index, json data) {
+bool Workspace::changeDeviceSettings(uint64_t index, json data) {
     if (devices.size() <= index)
         throw UIException("Index out of range in hook function.");
 
@@ -103,15 +100,13 @@ json Workspace::changeDeviceSettings(uint64_t index, json data) {
     if (!dev->getState())
         throw UIStateException(*dev);
 
-    UIWindow::getInstance().sendDeviceUpdateNotice(index);
-
     std::string editMode = data["editMode"];
     if (editMode == "device") {
         if (!data["hostname"].empty()) {
             dev->setHostname(data["hostname"]);
         }
 
-        return "{'success': true}";
+        return true;
     } else if (editMode == "interface") {
         unsigned long long interfaceIndex = data["interfaceIndex"];
 
@@ -130,23 +125,36 @@ json Workspace::changeDeviceSettings(uint64_t index, json data) {
                 );
                 
                 if (!data["subnetMask"].empty()) {
-                   if (!data["subnet"]["slashNotation"].empty()) {
+                   if (!data["subnetMask"]["slashNotation"].empty()) {
                         try {
                             interf.setIpAddress(
                                 SubnetAddress(
                                     newIp,
-                                    data["subnet"]["slashNotation"]
+                                    data["subnetMask"]["slashNotation"]
                                 )
                             );
                         } catch(const std::invalid_argument&) {
-                            throw UIParameterException("ip");
+                            throw UIParameterException("subnetMask");
+                        }
+                   }
+                   else if (!data["subnetMask"]["dotNotation"].empty()) {
+                        try {
+                            std::string dotNot = data["subnetMask"]["dotNotation"];
+                            interf.setIpAddress(
+                                SubnetAddress(
+                                    newIp,
+                                    SubnetAddress::dotMaskToCIDR(IPv4Address(dotNot))
+                                )
+                            );
+                        } catch(const std::invalid_argument&) {
+                            throw UIParameterException("subnetMask");
                         }
                    }
                 } else {
                     try {
                         interf.setIpAddress(SubnetAddress(newIp));
                     } catch(const std::invalid_argument&) {
-                        throw UIParameterException("ip.address");
+                        throw UIParameterException("ipAddress");
                     }
                 }
 
@@ -178,7 +186,7 @@ json Workspace::changeDeviceSettings(uint64_t index, json data) {
             }
         }
 
-        return "{'success': true}";
+        return true;
     } else throw UIParameterException("editMode");
 }
 

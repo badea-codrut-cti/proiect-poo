@@ -41,8 +41,8 @@ std::string windowDeviceAdd(std::string str) {
 std::string windowOpenDeviceSettings(std::string str) {
     try {
         json data = json::parse(std::move(str));
-        json ret = Workspace::getWorkspace().WOpenDeviceSettings(data);
-        return ret.dump();
+        Workspace::getWorkspace().WOpenDeviceSettings(data);
+        return "{success: true}";
     } catch(const UIException& ex) {
         std::cout << ex.what();
         exit(-1);
@@ -51,14 +51,15 @@ std::string windowOpenDeviceSettings(std::string str) {
 
 std::string windowDeviceConnect(std::string str) {
     json data = json::parse(std::move(str));
-    return Workspace::getWorkspace().WDeviceConnectParser(data);
+    Workspace::getWorkspace().WDeviceConnectParser(data);
+    return "{success: true}";
 }
 
 std::string windowToggleDeviceState(std::string str) {
     try {
         json data = json::parse(std::move(str));
-        json ret = Workspace::getWorkspace().WToggleDeviceState(data);
-        return ret;
+        Workspace::getWorkspace().WToggleDeviceState(data);
+        return "{success: true}";
     } catch(const UIParameterException& ex) {
         std::string message = ex.what();
         hookWarningWindow(message);
@@ -94,7 +95,8 @@ void UIWindow::sendDeviceUpdateNotice(uint64_t devId) {
     window->eval("alert('" + std::to_string(devId) + "')");
 }
 
-void UIWindow::hookSettingsWindow(Device* dev) {
+void UIWindow::hookSettingsWindow(uint64_t index) {
+    Device* dev = Workspace::getWorkspace().getDevice(index);
     json device = deviceToJson(dev);
     webview::webview alter_window(false, nullptr);
     alter_window.set_title(dev->getHostname());
@@ -106,7 +108,27 @@ void UIWindow::hookSettingsWindow(Device* dev) {
         return std::string(deviceToJson(dev).dump());
     };
 
+    auto deviceUpdateCallback = [&alter_window, index](const std::string& set) {
+        try {
+            json obj = json::parse(set);
+            Workspace::getWorkspace().changeDeviceSettings(index, obj[0]);
+            //std::cout << deviceToJson(Workspace::getWorkspace().getDevice(index));
+            alter_window.eval("window.wDeviceUpdateListener()");
+            return std::string("{success: true}");
+        } catch (const UIParameterException& e) {
+            json ret = json::object();
+            ret["success"] = false;
+            ret["reason"] = e.what();
+            return std::string(ret.dump());
+        } catch(const UIException& e) {
+            std::cout << e.what();
+            exit(-1);
+        }
+    };
+
     alter_window.bind("wGetDeviceData", deviceDataCallback);
+    alter_window.bind("wChangeDeviceSettings", deviceUpdateCallback);
+
     alter_window.run();
     alter_window.terminate();
 }

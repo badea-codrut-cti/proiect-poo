@@ -4,6 +4,7 @@
 #include "../src/protocoale/icmp.h"
 #include "../src/date/osi/osiexcept.h"
 #include <cassert>
+#include <stdexcept>
 
 void test_macaddress() {
     MACAddress mac("00:00:00:00:00:01");
@@ -41,6 +42,15 @@ void test_ipv4() {
     assert(add3.getMaskDotNotation() == "255.255.255.0");
 
     assert(add3.getMaskSlashNotation() == 24);
+
+    assert(SubnetAddress::dotMaskToCIDR(IPv4Address("255.255.255.192")) == 26);
+
+    try {
+        SubnetAddress::dotMaskToCIDR(IPv4Address("255.255.255.193"));
+        assert(false);
+    } catch(const std::invalid_argument&) {
+
+    }
 }
 
 void test_device() {

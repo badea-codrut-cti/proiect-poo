@@ -14,7 +14,7 @@ class UIWindow {
 
         static UIWindow& getInstance();
 
-        void hookSettingsWindow(Device*);
+        void hookSettingsWindow(uint64_t);
 
         void sendDeviceUpdateNotice(uint64_t devId);
 };
