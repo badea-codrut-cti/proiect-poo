@@ -119,6 +119,7 @@ void UIWindow::hookSettingsWindow(uint64_t index) {
             json ret = json::object();
             ret["success"] = false;
             ret["reason"] = e.what();
+            hookWarningWindow(e.what());
             return std::string(ret.dump());
         } catch(const UIException& e) {
             std::cout << e.what();

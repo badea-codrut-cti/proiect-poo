@@ -8,7 +8,6 @@
 #include "device_factory.h"
 #include <cstdint>
 #include <stdexcept>
-#include "uihook.h"
 
 using json = nlohmann::json;
 
