@@ -22,7 +22,7 @@ class Workspace {
 
         bool WDeviceConnectParser(nlohmann::json);
 
-        bool WOpenDeviceSettings(nlohmann::json);
+        uint64_t WOpenDeviceSettings(nlohmann::json);
 
         bool WToggleDeviceState(nlohmann::json);
 

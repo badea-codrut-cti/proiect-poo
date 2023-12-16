@@ -4,7 +4,6 @@
 #include "../device/devices/l2switch.h"
 #include "./jsonify_data.h"
 #include "uiexcept.h"
-#include "uihook.h"
 #include "device_factory.h"
 #include <cstdint>
 #include <stdexcept>
@@ -60,7 +59,7 @@ bool Workspace::WDeviceConnectParser(json data) {
     return true;
 }
 
-bool Workspace::WOpenDeviceSettings(json data) {
+uint64_t Workspace::WOpenDeviceSettings(json data) {
     if (data[0]["deviceIndex"].empty())
         throw UIException("Device index not specified.");
 
@@ -69,8 +68,7 @@ bool Workspace::WOpenDeviceSettings(json data) {
     if (devices.size() <= devIndex)
         throw UIException("Device index out of range.");
 
-    UIWindow::getInstance().hookSettingsWindow(devIndex);
-    return true;
+    return devIndex;
 }
 
 bool Workspace::WToggleDeviceState(json data) {

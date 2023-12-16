@@ -41,7 +41,8 @@ std::string windowDeviceAdd(std::string str) {
 std::string windowOpenDeviceSettings(std::string str) {
     try {
         json data = json::parse(std::move(str));
-        Workspace::getWorkspace().WOpenDeviceSettings(data);
+        uint64_t devIndex = Workspace::getWorkspace().WOpenDeviceSettings(data);
+        UIWindow::getInstance().hookSettingsWindow(devIndex);
         return "{success: true}";
     } catch(const UIException& ex) {
         std::cout << ex.what();
