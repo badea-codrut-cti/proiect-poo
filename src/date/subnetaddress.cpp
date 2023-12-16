@@ -26,6 +26,21 @@ uint8_t SubnetAddress::getClassSubnetMask(const IPv4Address& address) {
     return 4; 
 }
 
+uint8_t SubnetAddress::dotMaskToCIDR(const IPv4Address& addr) {
+    uint8_t cidr = 0;
+    for(uint8_t octet : addr.getOctets()) {
+        uint8_t block = 0x80;
+        while (octet & block) {
+            octet = octet & (~block);
+            block >>= 1;
+            cidr++;
+        }
+        if (octet)
+            throw std::invalid_argument("Invalid subnet mask");
+    }
+    return cidr;
+}
+
 SubnetAddress::SubnetAddress(const IPv4Address& ip, uint8_t subnetMask) : IPv4Address(ip) {
     if (subnetMask > 30) 
         throw std::invalid_argument("Subnet mask cannot be greater than 30");

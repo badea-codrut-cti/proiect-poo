@@ -1,10 +1,9 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "../device/device.h"
-#include "nlohmann/json_fwd.hpp"
 
 class Workspace {
-    std::vector<Device*> devices;
+    std::vector<Device*> devices{};
     static Workspace workspace;
 
     private:
@@ -15,15 +14,19 @@ class Workspace {
         Workspace& operator=(const Workspace&) = delete;
         ~Workspace();
 
-        unsigned int addDevice(Device*);
+        uint64_t addDevice(Device*);
+
+        Device* getDevice(uint64_t);
 
         nlohmann::json WDeviceAddParser(nlohmann::json);
 
-        nlohmann::json WDeviceConnectParser(nlohmann::json);
+        bool WDeviceConnectParser(nlohmann::json);
 
-        nlohmann::json WOpenDeviceSettings(nlohmann::json);
+        uint64_t WOpenDeviceSettings(nlohmann::json);
 
-        nlohmann::json WToggleDeviceState(nlohmann::json);
+        bool WToggleDeviceState(nlohmann::json);
+
+        bool changeDeviceSettings(uint64_t, nlohmann::json);
         
         static Workspace& getWorkspace();
 };

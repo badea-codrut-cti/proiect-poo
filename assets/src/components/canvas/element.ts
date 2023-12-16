@@ -1,7 +1,6 @@
 import { Devices, type Device, type EthernetInterface } from "../../lib/types/device";
 import { CursorType, type CanvasObject, type CanvasDevice } from "../../lib/types/entity";
 import { TopologyCanvas } from "./canvas";
-import { connectElements } from "./draw";
 const icons: { [char: string]: {default: string}} = import.meta.glob('../../icons/toolbar/ports/*.svg', {  eager: true });
 
 export function handleObjectClick(rawObject: HTMLElement, cvObject: CanvasObject) {
@@ -24,7 +23,8 @@ function handleConnectClick(objectIndex: number, deviceIndex: number, interfaceI
     if (activePort) {
         window.wDeviceConnect(activePort, newPort);
         let instance = TopologyCanvas.getInstance();
-        connectElements(instance.getRawElement(objectIndex), instance.getRawElement(activePort.objectIndex));
+        //connectElements(instance.getRawElement(objectIndex) as HTMLElement, 
+            //instance.getRawElement(activePort.objectIndex) as HTMLElement);
         activePort = undefined;
         TopologyCanvas.getInstance().setCursorType(CursorType.DEFAULT);
     }

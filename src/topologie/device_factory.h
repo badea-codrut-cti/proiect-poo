@@ -3,17 +3,17 @@
 class DeviceFactory {
     public:
         enum DeviceType {
-            L2Switch,
-            Router,
-            EndDevice,
-            TrafficSniffer
+            l2Switch,
+            router,
+            endDevice,
+            trafficSniffer
         };
     
     private:
-        DeviceType devType;
+        DeviceType devType{endDevice};
 
     public:
-        DeviceFactory();
+        DeviceFactory() = default;
 
         DeviceFactory& setType(DeviceType);
 
