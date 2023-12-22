@@ -1,8 +1,9 @@
 #include "osiexcept.h"
 #include <sstream>
 
-std::string ipMessage(const SubnetAddress& addr) {
-    return addr.isLoopbackAddress() ? "a loopback" : addr.isMulticastAddress() ? "a multicast" : "a reserved";
+std::string ipMessage(const SubnetAddressV4& addr) {
+    return addr.isLoopbackAddress() ? "a loopback" : 
+    addr.isMulticastAddress() ? "a multicast" : "a reserved";
 } 
 
 InvalidPayloadException::InvalidPayloadException(DataLinkLayer::L2TypeField l2): 
@@ -30,7 +31,7 @@ InvalidFrameException(
     ) + " address."
 ) {}
 
-InvalidPacketException::InvalidPacketException(const SubnetAddress& addr):
+InvalidPacketException::InvalidPacketException(const SubnetAddressV4& addr):
 InvalidFrameException(
     "Source IP address " + addr.toString() + " is " +
     (
@@ -41,6 +42,6 @@ InvalidFrameException(
 
 InvalidPacketException::InvalidPacketException(const IPv4Address& addr):
 InvalidFrameException(
-    "Source IP address " + addr.toString() + " is " + ipMessage(SubnetAddress(addr)) + " address."
+    "Source IP address " + addr.toString() + " is " + ipMessage(SubnetAddressV4(addr)) + " address."
 ) {}
 

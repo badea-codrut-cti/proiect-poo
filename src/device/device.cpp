@@ -27,16 +27,16 @@ void Device::setHostname(const std::string& str) {
 
 bool Device::sendARPRequest(const IPv4Address& target, bool forced) {
     for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
-        if (!adapter[i].getAddress().isInSameSubnet(target))
+        if (!adapter[i].getIPv4Address().isInSameSubnet(target))
             continue;
 
         if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
             return true;
     
         ARPIpv4 pl(ARPData::REQUEST, adapter[i].getMacAddress(), 
-        MACAddress("00:00:00:00:00:01"), adapter[i].getAddress(), target);
+        MACAddress("00:00:00:00:00:01"), adapter[i].getIPv4Address(), target);
         DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
-        NetworkLayer l3(l2, adapter[i].getAddress(), target);
+        NetworkLayer l3(l2, adapter[i].getIPv4Address(), target);
         return adapter[i].sendData(l3);
     }
 

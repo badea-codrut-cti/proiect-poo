@@ -1,4 +1,5 @@
-#include "../date/subnetaddress.h"
+#include "../date/ipv4.h"
+#include "../date/ipv6.h"
 #include "../date/osi/datalink.h"
 
 #ifndef ETHERNET_H
@@ -17,7 +18,8 @@ class EthernetInterface {
         Device& device;
         EthernetInterface* link{nullptr};
 
-        SubnetAddress address;
+        SubnetAddressV4 addressV4;
+
         MACAddress macAddress;
         const MACAddress burnAddress;
         bool isOn{true}, unnumbered;
@@ -42,7 +44,7 @@ class EthernetInterface {
 
         bool connect(EthernetInterface*);
 
-        bool setIpAddress(const SubnetAddress&);
+        bool setIpAddress(const SubnetAddressV4&);
 
         bool setMacAddress(const MACAddress&);
 
@@ -66,7 +68,7 @@ class EthernetInterface {
 
         [[nodiscard]] bool getState() const;
 
-        [[nodiscard]] SubnetAddress getAddress() const;
+        [[nodiscard]] SubnetAddressV4 getIPv4Address() const;
 
         [[nodiscard]] bool isUnnumbered() const;
 

@@ -8,7 +8,8 @@ const std::string DEFAULT_ROUTER_HOSTNAME = "Router";
 
 class Router: public Device {
     private:
-        std::map<SubnetAddress, IPv4Address> routes{};
+        std::map<SubnetAddressV4, IPv4Address> routes{};
+        std::map<SubnetAddressV6, IPv6Address> routesV6{};
 
         IPv4Address findRoute(const IPv4Address&);
 
@@ -17,7 +18,9 @@ class Router: public Device {
 
         bool interfaceCallback(const DataLinkLayer&, uint8_t) override;
 
-        bool addStaticRoute(const SubnetAddress&, const IPv4Address&);
+        bool addStaticRoute(const SubnetAddressV4&, const IPv4Address&);
+        bool addStaticRoute(const SubnetAddressV6&, const IPv4Address&);
 
-        bool removeStaticRoute(const SubnetAddress&, const IPv4Address&);
+        bool removeStaticRoute(const SubnetAddressV4&, const IPv4Address&);
+        bool removeStaticRoute(const SubnetAddressV6&, const IPv4Address&);
 };

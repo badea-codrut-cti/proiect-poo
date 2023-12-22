@@ -23,10 +23,10 @@ json deviceToJson(const Device* pDevice) {
         interface["hardwareAddress"] = ether.getBurntInAddress().toString();
         if (!ether.isUnnumbered()) {
             interface["ip"] = json::object();
-            interface["ip"]["address"] = static_cast<const IPv4Address&>(ether.getAddress()).toString();
+            interface["ip"]["address"] = static_cast<const IPv4Address&>(ether.getIPv4Address()).toString();
             interface["ip"]["subnetMask"] = json::object();
-            interface["ip"]["subnetMask"]["dotNotation"] = ether.getAddress().getMaskDotNotation().toString();
-            interface["ip"]["subnetMask"]["slashNotation"] = ether.getAddress().getMaskSlashNotation();
+            interface["ip"]["subnetMask"]["dotNotation"] = ether.getIPv4Address().getMaskDotNotation().toString();
+            interface["ip"]["subnetMask"]["slashNotation"] = ether.getIPv4Address().getSubnetMask();
         }
         outDevice["interfaces"][i] = interface;
     }

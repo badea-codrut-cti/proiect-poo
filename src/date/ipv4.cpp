@@ -4,9 +4,10 @@
 #include <sstream>
 #include <stdexcept>
 #include "./ipv4.h"
+#include "subnetaddress.h"
 
 // "Nimeni nu iti da tie o adresa statica de clasa A, nu exista dom student"
-void IPv4Address::stringToOctets(const std::string& str) {
+std::array<uint8_t, IPV4_SIZE> IPv4Address::stringToOctets(const std::string& str) {
     std::istringstream iss(str);
     std::string token;
     std::array<uint8_t, IPV4_SIZE> newOctets = {0};
@@ -32,63 +33,128 @@ void IPv4Address::stringToOctets(const std::string& str) {
         throw std::invalid_argument("Invalid IP address format. Less than 4 octets.");
     }
 
-    octets = newOctets;
+    return newOctets;
 }
 
-std::array<uint8_t, IPV4_SIZE> IPv4Address::getOctets() const {
-    return octets;
+uint8_t SubnetAddressV4::getClassSubnetMask(const IPv4Address& address) {
+    std::array<uint8_t, IPV4_SIZE> octets = address.getOctets();
+    if (!(octets[0] & 0x80)) {
+        return 8;
+    }
+
+    if ((octets[0] & 0xC0) == 0x80) {
+        return 16;
+    }
+
+    if ((octets[0] & 0xE0) == 0xC0) {
+        return 24;
+    }
+
+    if ((octets[0] & 0xF0) == 0xE0) {
+        return octets[0] == 224 ? 24 : 8;
+    }
+
+    throw std::invalid_argument("Invalid IP address for subnet mask calculation");
 }
 
-IPv4Address::IPv4Address() : octets({127, 0, 0, 1}) {}
+uint8_t SubnetAddressV4::dotMaskToCIDR(const IPv4Address& addr) {
+    uint8_t cidr = 0;
+    for(uint8_t octet : addr.getOctets()) {
+        uint8_t block = 0x80;
+        while (octet & block) {
+            octet = octet & (~block);
+            block >>= 1;
+            cidr++;
+        }
+        if (octet)
+            throw std::invalid_argument("Invalid subnet mask");
+    }
+    return cidr;
+}
 
-IPv4Address::IPv4Address(const IPv4Address& other) = default;
+IPv4Address::IPv4Address() : 
+Address<IPV4_SIZE>(
+    std::array<uint8_t, IPV4_SIZE>({127, 0, 0, 1})
+) {}
 
-IPv4Address::IPv4Address(const std::array<uint8_t, IPV4_SIZE>& octets) : octets(octets) {}
+IPv4Address::IPv4Address(const IPv4Address& other) : Address<IPV4_SIZE>(other) {}
 
-IPv4Address::IPv4Address(const std::string& str): octets() {
-    stringToOctets(str);
+IPv4Address::IPv4Address(const std::array<uint8_t, IPV4_SIZE>& octets) : 
+Address<IPV4_SIZE>(octets) {}
+
+IPv4Address::IPv4Address(const std::string& str): 
+Address<IPV4_SIZE>(stringToOctets(str)) {
+
 }
 
 std::string IPv4Address::toString() const {
     std::ostringstream oss;
-    for (size_t i = 0; i < octets.size(); ++i) {
+    for (size_t i = 0; i < IPV4_SIZE; ++i) {
         oss << static_cast<int>(octets[i]);
-        if (i < 3) {
+        if (i < IPV4_SIZE-1) {
             oss << ".";
-        }
+        } 
     }
 
     return oss.str();
 }
 
-IPv4Address& IPv4Address::operator=(const std::string& str) {
-    stringToOctets(str);
-    return *this;
+SubnetAddressV4::SubnetAddressV4(): 
+SubnetAddress<IPV4_SIZE, IPv4Address>(IPv4Address(), 8) {
+
 }
 
-IPv4Address& IPv4Address::operator=(const IPv4Address&) = default;
+SubnetAddressV4::SubnetAddressV4(const IPv4Address& addr):
+SubnetAddress<IPV4_SIZE, IPv4Address>(addr, getClassSubnetMask(addr)) {
 
-bool IPv4Address::operator==(const IPv4Address& other) const {
-    return octets == other.octets;
 }
 
-bool IPv4Address::operator==(const std::string& str) const {
-    return str == toString();
+SubnetAddressV4::SubnetAddressV4(const IPv4Address& addr, uint8_t nr):
+SubnetAddress<IPV4_SIZE, IPv4Address>(addr, nr) {
+
 }
 
-bool IPv4Address::operator<(const IPv4Address& other) const {
-    for (uint8_t i = 0; i < IPV4_SIZE - 1; i++)
-        if (octets[i] > other.octets[i])
-            return false;
+IPv4Address SubnetAddressV4::getMaskDotNotation() const {
+    std::array<uint8_t, IPV4_SIZE> dotNotation{};
+    size_t remainingBits = subnetMask, i = 0;
+    while (i < IPV4_SIZE && remainingBits) {
+        if (remainingBits >= 8) {
+            dotNotation[i++] = 255;
+            remainingBits -= 8;
+            continue;
+        } 
 
-    return octets[IPV4_SIZE - 1] < other.octets[IPV4_SIZE - 1];
+        dotNotation[i++] = 0xFFU << (8 - remainingBits);
+        remainingBits = 0;
+    }
+
+    while (i < IPV4_SIZE) 
+        dotNotation[i++] = 0;
+
+    return IPv4Address{dotNotation};
 }
 
-bool IPv4Address::operator>=(const IPv4Address& other) const {
-    return !(*this < other);
+std::string SubnetAddressV4::toString() const {
+    std::ostringstream str;
+    str << IPv4Address::toString();
+    str << "/" << subnetMask;
+    return str.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const IPv4Address& ip) {
-    os << ip.toString();
+bool SubnetAddressV4::isLoopbackAddress() const {
+    return octets[0] == 127;
+}
+
+bool SubnetAddressV4::isMulticastAddress() const {
+    return (octets[0] >> 4) == 0xE;
+}
+
+std::ostream& operator<<(std::ostream& os, const IPv4Address& addr) {
+    os << addr.toString();
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const SubnetAddressV4& addr) {
+    os << addr.toString();
     return os;
 }

@@ -30,10 +30,11 @@ class NetworkAdapter {
         [[nodiscard]] uint8_t interfaceCount() const;
 
         [[nodiscard]] uint8_t getIntefaceIndex(const MACAddress&) const;
-
         [[nodiscard]] uint8_t getIntefaceIndex(const IPv4Address&) const;
+        [[nodiscard]] uint8_t getIntefaceIndex(const IPv6Address&) const;
 
         [[nodiscard]] uint8_t findInSubnet(const IPv4Address&) const;
+        [[nodiscard]] uint8_t findInSubnet(const IPv6Address&) const;
 
         [[nodiscard]] bool hasInterface(const MACAddress&) const;
 

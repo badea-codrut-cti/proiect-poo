@@ -125,7 +125,7 @@ bool Workspace::changeDeviceSettings(uint64_t index, json data) {
                    if (!data["subnetMask"]["slashNotation"].empty()) {
                         try {
                             interf.setIpAddress(
-                                SubnetAddress(
+                                SubnetAddressV4(
                                     newIp,
                                     data["subnetMask"]["slashNotation"]
                                 )
@@ -138,9 +138,9 @@ bool Workspace::changeDeviceSettings(uint64_t index, json data) {
                         try {
                             std::string dotNot = data["subnetMask"]["dotNotation"];
                             interf.setIpAddress(
-                                SubnetAddress(
+                                SubnetAddressV4(
                                     newIp,
-                                    SubnetAddress::dotMaskToCIDR(IPv4Address(dotNot))
+                                    SubnetAddressV4::dotMaskToCIDR(IPv4Address(dotNot))
                                 )
                             );
                         } catch(const std::invalid_argument&) {
@@ -149,7 +149,7 @@ bool Workspace::changeDeviceSettings(uint64_t index, json data) {
                    }
                 } else {
                     try {
-                        interf.setIpAddress(SubnetAddress(newIp));
+                        interf.setIpAddress(SubnetAddressV4(newIp));
                     } catch(const std::invalid_argument&) {
                         throw UIParameterException("ipAddress");
                     }

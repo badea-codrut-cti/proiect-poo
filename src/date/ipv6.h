@@ -1,16 +1,18 @@
 #include <array>
 #include <string>
 #include "macaddress.h"
+#include "subnetaddress.h"
+
+#pragma once
 
 #ifndef IPV6_H
 #define IPV6_H
 
 const uint8_t IPV6_SIZE = 16;
 
-class IPv6Address {
+class IPv6Address : public Address<IPV6_SIZE> {
     protected:
-        std::array<uint8_t, IPV6_SIZE> octets;
-        void stringToOctets(const std::string&);
+        static std::array<uint8_t, IPV6_SIZE> stringToOctets(const std::string&);
 
     public:
         IPv6Address();
@@ -20,16 +22,19 @@ class IPv6Address {
         explicit IPv6Address(const MACAddress&);
 
         [[nodiscard]] std::string toString() const;
-        [[nodiscard]] std::array<uint8_t, IPV6_SIZE> getOctets() const;
-
-        IPv6Address& operator=(const std::string&);
-        IPv6Address& operator=(const IPv6Address&);
-        bool operator==(const IPv6Address&) const;
-        bool operator==(const std::string&) const;
-        bool operator<(const IPv6Address&) const;
-        bool operator>=(const IPv6Address&) const;
-        
-        friend std::ostream& operator<<(std::ostream&, const IPv6Address&);
 };
 
+class SubnetAddressV6 : public SubnetAddress<IPV6_SIZE, IPv6Address> {
+    uint8_t subnetMask;
+
+    public:
+        SubnetAddressV6();
+        explicit SubnetAddressV6(IPv6Address);
+        SubnetAddressV6(IPv6Address, uint8_t);
+        
+        [[nodiscard]] std::string toString() const;
+};
+
+std::ostream& operator<<(std::ostream&, const IPv6Address&);
+std::ostream& operator<<(std::ostream&, const SubnetAddressV6&);
 #endif

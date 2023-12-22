@@ -2,7 +2,6 @@
 #include <string>
 #include "datalink.h"
 #include "network.h"
-#include "../subnetaddress.h"
 
 class InvalidFrameException : public std::exception {
     protected: 
@@ -25,7 +24,7 @@ class InvalidPayloadException : public InvalidFrameException {
 //TODO: Fix naming scheme, MACAddress is part of the "frame", not the "packet"
 class InvalidPacketException : public InvalidFrameException {
     public:
-        explicit InvalidPacketException(const SubnetAddress&);
+        explicit InvalidPacketException(const SubnetAddressV4&);
         explicit InvalidPacketException(const IPv4Address&);
         explicit InvalidPacketException(const MACAddress&);
 };

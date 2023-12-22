@@ -1,7 +1,7 @@
 #include "ipv6.h"
 #include <sstream>
 
-void IPv6Address::stringToOctets(const std::string& str) {
+std::array<uint8_t, IPV6_SIZE> IPv6Address::stringToOctets(const std::string& str) {
     std::istringstream iss(str);
     std::string token;
     std::array<uint8_t, IPV6_SIZE> newOctets = {0};
@@ -46,29 +46,15 @@ void IPv6Address::stringToOctets(const std::string& str) {
         throw std::invalid_argument("Invalid IP address format. Less than 16 octets.");
     }
 
-    octets = newOctets;
-}
-
-std::array<uint8_t, IPV6_SIZE> IPv6Address::getOctets() const {
-    return octets;
-}
-
-IPv6Address::IPv6Address() : octets({0xFE, 0x80 }) {}
-
-IPv6Address::IPv6Address(const IPv6Address& other) = default;
-
-IPv6Address::IPv6Address(const std::array<uint8_t, IPV6_SIZE>& octets) : octets(octets) {}
-
-IPv6Address::IPv6Address(const std::string& str): octets() {
-    stringToOctets(str);
+    return newOctets;
 }
 
 std::string IPv6Address::toString() const {
     std::ostringstream oss;
     size_t maxZerosStart = 0, maxZerosLen = 0;
     size_t curZerosStart = 0, curZerosLen = 0;
-    for (size_t i = 0; i < octets.size(); i += 2) {
-        int16_t part = (octets[i] << 8) | octets[i+1];
+    for (size_t i = 0; i < IPV6_SIZE; i += 2) {
+        uint16_t part = (octets[i] << 8) | octets[i+1];
         if (part == 0) {
             if (curZerosLen == 0) {
                 curZerosStart = i;
@@ -83,13 +69,13 @@ std::string IPv6Address::toString() const {
         }
     }
 
-    for (size_t i = 0; i < octets.size(); i += 2) {
+    for (size_t i = 0; i < IPV6_SIZE; i += 2) {
         if (i == maxZerosStart && maxZerosLen > 0) {
             oss << "::";
             i += maxZerosLen - 2;
             continue;
         }
-        int16_t part = (octets[i] << 8) | octets[i+1];
+        uint16_t part = (octets[i] << 8) | octets[i+1];
         oss << std::hex << part;
         if (i < IPV6_SIZE-2 && !(i == maxZerosStart - 2 && maxZerosLen > 0)) {
             oss << ":";
@@ -104,34 +90,33 @@ std::string IPv6Address::toString() const {
     return result;
 }
 
-IPv6Address& IPv6Address::operator=(const std::string& str) {
-    stringToOctets(str);
-    return *this;
+IPv6Address::IPv6Address() : 
+Address<IPV6_SIZE>(std::array<uint8_t, IPV6_SIZE>({0xFE, 0x80 })) 
+{}
+
+IPv6Address::IPv6Address(const IPv6Address& other):
+Address<IPV6_SIZE>(other.octets) {}
+
+IPv6Address::IPv6Address(const std::array<uint8_t, IPV6_SIZE>& octets) :
+Address<IPV6_SIZE>(octets) {}
+
+IPv6Address::IPv6Address(const std::string& str): 
+Address<IPV6_SIZE>(stringToOctets(str)) {}
+
+std::ostream& operator<<(std::ostream& os, const IPv6Address& addr) {
+    os << addr.toString();
+    return os;
 }
 
-IPv6Address& IPv6Address::operator=(const IPv6Address&) = default;
+std::string SubnetAddressV6::toString() const {
+    std::ostringstream sstr;
+    sstr << IPv6Address::toString();
+    sstr << "/" << subnetMask;
 
-bool IPv6Address::operator==(const IPv6Address& other) const {
-    return octets == other.octets;
+    return sstr.str();
 }
 
-bool IPv6Address::operator==(const std::string& str) const {
-    return str == toString();
-}
-
-bool IPv6Address::operator<(const IPv6Address& other) const {
-    for (uint8_t i = 0; i < IPV6_SIZE - 1; i++)
-        if (octets[i] > other.octets[i])
-            return false;
-
-    return octets[IPV6_SIZE - 1] < other.octets[IPV6_SIZE - 1];
-}
-
-bool IPv6Address::operator>=(const IPv6Address& other) const {
-    return !(*this < other);
-}
-
-std::ostream& operator<<(std::ostream& os, const IPv6Address& ip) {
-    os << ip.toString();
+std::ostream& operator<<(std::ostream& os, const SubnetAddressV6& addr) {
+    os << addr.toString();
     return os;
 }

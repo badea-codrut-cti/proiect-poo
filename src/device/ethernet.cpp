@@ -13,7 +13,8 @@ bool EthernetInterface::receiveData(const DataLinkLayer& data) {
 }
 
 EthernetInterface::EthernetInterface(Device& _device, unsigned long long maxSpeed, bool isUnnumbered):
-device(_device), macAddress(publicMACCounter += 1), burnAddress(macAddress), unnumbered(isUnnumbered), 
+device(_device), macAddress((publicMACCounter += 1).getOctets()),
+ burnAddress(macAddress), unnumbered(isUnnumbered), 
 speed(maxSpeed), maxSpeed(maxSpeed), bandwidth(maxSpeed) {
 }
 
@@ -31,7 +32,7 @@ bool EthernetInterface::connect(EthernetInterface* other) {
     return true;
 }
 
-bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
+bool EthernetInterface::setIpAddress(const SubnetAddressV4& add) {
     if (!device.getState())
         return false;
 
@@ -45,7 +46,7 @@ bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
     if (unnumbered)
         throw std::invalid_argument("Unnumbered interface cannot be assigned an IP address.");
 
-    address = add;
+    addressV4 = add;
     return true;
 }
 
@@ -111,8 +112,8 @@ bool EthernetInterface::getState() const {
     return isOn;
 }
 
-SubnetAddress EthernetInterface::getAddress() const {
-    return address;
+SubnetAddressV4 EthernetInterface::getIPv4Address() const {
+    return addressV4;
 }
 
 bool EthernetInterface::isUnnumbered() const {
@@ -133,7 +134,10 @@ EthernetInterface* EthernetInterface::copy(Device& dev) const {
 
 std::ostream& operator<<(std::ostream& os, const EthernetInterface& ip) {
     os << "mac-address " << ip.macAddress << "\r\n";
-    os << "ip address " << ((IPv4Address)ip.address) << " " << ip.address.getMaskDotNotation() << "\r\n";
+    if (ip.addressV4 != IPv4Address("127.0.0.1"))
+        os << "ip address " << ((IPv4Address)ip.addressV4) << " " << ip.addressV4.getMaskDotNotation() << "\r\n";
+    else
+        os << "no ip address";
     os << "speed " << std::to_string(ip.speed) << "\r\n";
     os << "bandwidth "<< std::to_string(ip.bandwidth) << "\r\n";
     os << (ip.isOn ? "no shutdown" : "shutdown") << "\r\n";

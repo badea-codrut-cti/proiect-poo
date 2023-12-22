@@ -2,6 +2,8 @@
 #include "device.h"
 #include "interface.h"
 #include "./topologies/labs.h"
+#include "../src/date/macaddress.h"
+#include <iostream>
 
 int main() {
     test_macaddress();

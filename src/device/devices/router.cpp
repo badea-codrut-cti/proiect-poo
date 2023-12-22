@@ -34,17 +34,17 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
             return false;
 
         IPv4Address dest = findRoute(frame.getIPDestination());
-        if (dest == "127.0.0.1") {
+        if (dest == IPv4Address("127.0.0.1")) {
             if (frame.getL3Protocol() == NetworkLayer::ICMP) {
                 IPv4Address icmpReturn = findRoute(frame.getIPSource());
-                if (icmpReturn == "127.0.0.1")
+                if (icmpReturn == IPv4Address("127.0.0.1"))
                     return false;
 
                 sendARPRequest(icmpReturn, false);
 
                 ICMPPayload pl(ICMPPayload::DEST_UNREACHABLE, 0);
                 DataLinkLayer l2(adapter[fIndex].getMacAddress(), getArpEntryOrBroadcast(icmpReturn), pl, DataLinkLayer::IPV4);
-                NetworkLayer l3(l2, adapter[fIndex].getAddress(), frame.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
+                NetworkLayer l3(l2, adapter[fIndex].getIPv4Address(), frame.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
                 adapter[fIndex].sendData(l3);
             }
             return false;
@@ -71,7 +71,7 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
     }
 }   
 
-bool Router::addStaticRoute(const SubnetAddress& subnet, const IPv4Address& ip) {
+bool Router::addStaticRoute(const SubnetAddressV4& subnet, const IPv4Address& ip) {
     routes.insert(std::make_pair(subnet, ip));
     return true;
 }
