@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Device, EthernetInterface } from "../../../lib/types/device";
     import { pseudoDevice } from "../../../lib/workspace";
+    import Cmd from "./apps/CMD.svelte";
     import Desktop from "./apps/Desktop.svelte";
     import IpConfig from "./apps/IPConfig.svelte";
     import { AppType } from "./menu";
@@ -41,6 +42,9 @@
     {/if}
     {#if currentApp == AppType.IPCONFIG}
         <IpConfig interfaces={device.interfaces}/>
+    {/if}
+    {#if currentApp == AppType.CMD}
+        <Cmd/>
     {/if}
 </div>
 

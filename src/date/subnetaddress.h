@@ -4,8 +4,7 @@
 #define SUBNETADDR_H
 
 class SubnetAddress : public IPv4Address {
-    private:
-        uint8_t subnetMask;
+    uint8_t subnetMask;
 
     public:
         static uint8_t getClassSubnetMask(const IPv4Address&);

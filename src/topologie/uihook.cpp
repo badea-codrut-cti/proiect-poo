@@ -86,6 +86,10 @@ UIWindow::UIWindow() {
     window->terminate();
 }
 
+UIWindow::~UIWindow() {
+    delete window;
+}
+
 UIWindow UIWindow::instance{};
 
 UIWindow& UIWindow::getInstance() {

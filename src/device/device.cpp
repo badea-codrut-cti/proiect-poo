@@ -32,9 +32,9 @@ bool Device::sendARPRequest(const IPv4Address& target, bool forced) {
 
         if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
             return true;
-        
-        ARPPayload pl = ARPParser::createARPRequest(adapter[i].getMacAddress(), 
-        adapter[i].getAddress(), target);
+    
+        ARPIpv4 pl(ARPData::REQUEST, adapter[i].getMacAddress(), 
+        MACAddress("00:00:00:00:00:01"), adapter[i].getAddress(), target);
         DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
         NetworkLayer l3(l2, adapter[i].getAddress(), target);
         return adapter[i].sendData(l3);
@@ -96,24 +96,24 @@ bool Device::handlePingRequest(const NetworkLayer& packet, const MACAddress& mac
 
 bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
     try {
-        auto payload = dynamic_cast<const ARPPayload*>(data.getPayload());
+        auto payload = dynamic_cast<const ARPIpv4*>(data.getPayload());
 
-        if (payload->getHardwareType() != ARPPayload::ETHERNET || payload->getProtocolType() != ARPPayload::IPV4)
-            return false;
+        bool isItForMe = adapter.hasInterface(payload->getDestinationIPv4Address());
 
-        auto [hwSrc, hwDest, protoSrc, protoDest] = ARPParser::parseARPPayload(*payload);
+        if (payload->getOperation() == ARPData::REPLY) {
+            arpCache.insert(std::make_pair(
+                payload->getSourceIPv4Address(), 
+                payload->getSourceMacAddress()
+            ));
 
-        bool isItForMe = adapter.hasInterface(protoDest);
-
-        if (payload->getOperation() == ARPPayload::REPLY) {
-            arpCache.insert(std::make_pair(protoSrc, hwSrc));
             if (isItForMe)
             return isItForMe;
         } else if (isItForMe) {
-            MACAddress destMAC = adapter[adapter.getIntefaceIndex(IPv4Address{protoDest})].getMacAddress();
-            ARPPayload l2pl = ARPParser::createARPReply(destMAC, hwSrc, protoDest, protoSrc);
-            DataLinkLayer l2(destMAC, hwSrc, l2pl, DataLinkLayer::ARP);
-            NetworkLayer l3(l2, protoDest, protoSrc);
+            MACAddress destMAC = adapter[adapter.getIntefaceIndex(payload->getDestinationIPv4Address())].getMacAddress();
+            ARPIpv4 l2pl(ARPData::REPLY, destMAC, payload->getSourceMacAddress(), 
+            payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
+            DataLinkLayer l2(destMAC, payload->getSourceMacAddress(), l2pl, DataLinkLayer::ARP);
+            NetworkLayer l3(l2, payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
             adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
             return true;
         }

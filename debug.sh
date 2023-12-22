@@ -16,7 +16,7 @@ cppcheck --enable=all \
 
 cd build
 
-cmake --build .
+cmake --build . -j16
 
 ASAN_OPTIONS=detect_leaks=1
 MSAN_OPTIONS=halt_on_error=1 

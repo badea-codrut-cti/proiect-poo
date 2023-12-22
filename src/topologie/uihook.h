@@ -9,8 +9,14 @@ class UIWindow {
 
     webview::webview* window;
 
+    UIWindow();
+
     public:
-        UIWindow();
+        UIWindow(const UIWindow&) = delete;
+
+        UIWindow& operator=(const UIWindow&) = delete;
+
+        ~UIWindow();
 
         static UIWindow& getInstance();
 

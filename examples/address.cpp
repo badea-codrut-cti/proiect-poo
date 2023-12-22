@@ -3,6 +3,7 @@
 #include "../src/device/devices/end_device.h"
 #include "../src/protocoale/icmp.h"
 #include "../src/date/osi/osiexcept.h"
+#include "../src/date/ipv6.h"
 #include <cassert>
 #include <stdexcept>
 
@@ -52,6 +53,17 @@ void test_ipv4() {
     } catch(const std::invalid_argument&) {
 
     }
+}
+
+void test_ipv6() {
+    IPv6Address add1("FE80::1");
+
+    assert(add1.getOctets()[0] == 0xFE && add1.getOctets()[IPV6_SIZE-1] == 0x01);
+
+    try {
+        IPv6Address("FE80::1::2");
+        assert(false);
+    } catch(const std::invalid_argument&) {}
 }
 
 void test_device() {
