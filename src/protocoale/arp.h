@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <ostream>
 #include "../date/ipv4.h"
+#include "../date/ipv6.h"
 #include "../date/macaddress.h"
 #include "./payload.h"
 
@@ -78,12 +79,12 @@ class ARPPayload : public L2Payload {
         [[nodiscard]] ARPData::ProtocolType getProtocolType() const;
 };  
 
-class ARPIpv4 : public ARPPayload<MACADDRESS_SIZE, IPV4_SIZE> {
+class ARPIPv4 : public ARPPayload<MACADDRESS_SIZE, IPV4_SIZE> {
     public:
-        ARPIpv4(ARPData::Operation, const MACAddress&, const MACAddress&, 
+        ARPIPv4(ARPData::Operation, const MACAddress&, const MACAddress&, 
         const IPv4Address&, const IPv4Address&);
 
-        ~ARPIpv4();
+        ~ARPIPv4();
 
         [[nodiscard]] MACAddress getSourceMacAddress() const;
 
@@ -92,6 +93,26 @@ class ARPIpv4 : public ARPPayload<MACADDRESS_SIZE, IPV4_SIZE> {
         [[nodiscard]] IPv4Address getSourceIPv4Address() const;
 
         [[nodiscard]] IPv4Address getDestinationIPv4Address() const;
+
+        [[nodiscard]] ARPData::Operation getOperation() const;
+
+        [[nodiscard]] L2Payload* clone() const override;
+};
+
+class ARPIPv6 : public ARPPayload<MACADDRESS_SIZE, IPV6_SIZE> {
+public:
+        ARPIPv6(ARPData::Operation, const MACAddress&, const MACAddress&, 
+        const IPv6Address&, const IPv6Address&);
+
+        ~ARPIPv6();
+
+        [[nodiscard]] MACAddress getSourceMacAddress() const;
+
+        [[nodiscard]] MACAddress getDestinationMacAddress() const;
+
+        [[nodiscard]] IPv6Address getSourceIPv6Address() const;
+
+        [[nodiscard]] IPv6Address getDestinationIPv6Address() const;
 
         [[nodiscard]] ARPData::Operation getOperation() const;
 

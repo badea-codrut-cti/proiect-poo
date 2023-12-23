@@ -112,7 +112,7 @@ L2Payload* ARPPayload<N, M>::clone() const {
     return new ARPPayload(*this);
 }
 
-ARPIpv4::ARPIpv4(ARPData::Operation op, const MACAddress& srcMac, const MACAddress& destMac,
+ARPIPv4::ARPIPv4(ARPData::Operation op, const MACAddress& srcMac, const MACAddress& destMac,
 const IPv4Address& srcIpv4, const IPv4Address& destIpv4): 
 ARPPayload<MACADDRESS_SIZE, IPV4_SIZE>(op,
  srcMac.getOctets(), destMac.getOctets(),
@@ -121,30 +121,67 @@ ARPData::ETHERNET, ARPData::IPV4) {
 
 }
 
-MACAddress ARPIpv4::getSourceMacAddress() const {
+MACAddress ARPIPv4::getSourceMacAddress() const {
     return MACAddress(getSourceHardwareAddress());
 }
 
-MACAddress ARPIpv4::getDestinationMacAddress() const {
+MACAddress ARPIPv4::getDestinationMacAddress() const {
     return MACAddress(getDestinationHardwareAddress());
 }
 
-IPv4Address ARPIpv4::getSourceIPv4Address() const {
+IPv4Address ARPIPv4::getSourceIPv4Address() const {
     return IPv4Address(getSourceProtocolAddress());
 }
 
-IPv4Address ARPIpv4::getDestinationIPv4Address() const {
+IPv4Address ARPIPv4::getDestinationIPv4Address() const {
     return IPv4Address(getDestinationProtocolAddress());
 }
 
-ARPData::Operation ARPIpv4::getOperation() const {
+ARPData::Operation ARPIPv4::getOperation() const {
     return ARPPayload<MACADDRESS_SIZE, IPV4_SIZE>::getOperation();
 }
 
-L2Payload* ARPIpv4::clone() const {
-    return new ARPIpv4(*this);
+L2Payload* ARPIPv4::clone() const {
+    return new ARPIPv4(*this);
 }
 
-ARPIpv4::~ARPIpv4() {
+ARPIPv4::~ARPIPv4() {
+    
+}
+
+ARPIPv6::ARPIPv6(ARPData::Operation op, const MACAddress& srcMac, const MACAddress& destMac,
+const IPv6Address& srcIpv4, const IPv6Address& destIpv4): 
+ARPPayload<MACADDRESS_SIZE, IPV6_SIZE>(op,
+ srcMac.getOctets(), destMac.getOctets(),
+srcIpv4.getOctets(), destIpv4.getOctets(), 
+ARPData::ETHERNET, ARPData::IPV4) {
+
+}
+
+MACAddress ARPIPv6::getSourceMacAddress() const {
+    return MACAddress(getSourceHardwareAddress());
+}
+
+MACAddress ARPIPv6::getDestinationMacAddress() const {
+    return MACAddress(getDestinationHardwareAddress());
+}
+
+IPv6Address ARPIPv6::getSourceIPv6Address() const {
+    return IPv6Address(getSourceProtocolAddress());
+}
+
+IPv6Address ARPIPv6::getDestinationIPv6Address() const {
+    return IPv6Address(getDestinationProtocolAddress());
+}
+
+ARPData::Operation ARPIPv6::getOperation() const {
+    return ARPPayload<MACADDRESS_SIZE, IPV6_SIZE>::getOperation();
+}
+
+L2Payload* ARPIPv6::clone() const {
+    return new ARPIPv6(*this);
+}
+
+ARPIPv6::~ARPIPv6() {
     
 }

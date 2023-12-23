@@ -30,7 +30,7 @@ class Device {
 
         virtual bool handleARPRequest(const DataLinkLayer&, const MACAddress&);
 
-        virtual bool handlePingRequest(const NetworkLayer&, const MACAddress&);
+        virtual bool handlePingRequest(const NetworkLayerV4&, const MACAddress&);
 
         virtual bool interfaceCallback(const DataLinkLayer&, uint8_t);
 

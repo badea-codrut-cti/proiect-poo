@@ -3,81 +3,81 @@
 
 // "Copilu, ce e ala Datagram? Nu exista, dom student."
 
-NetworkLayer::NetworkLayer(DataLinkLayer& layer, const IPv4Address& sourceIP, const IPv4Address& destIP, 
-uint8_t ttl, IPProtocolType l3proto): 
+NetworkLayerV4::NetworkLayerV4(DataLinkLayer& layer, const IPv4Address& sourceIP, const IPv4Address& destIP, 
+uint8_t ttl, IPv4ProtocolType l3proto): 
 DataLinkLayer(layer), source(sourceIP), destination(destIP), TTL(ttl), proto(l3proto) {
 
 }
 
-NetworkLayer::NetworkLayer(const NetworkLayer& other): 
+NetworkLayerV4::NetworkLayerV4(const NetworkLayerV4& other): 
 DataLinkLayer(other), source(other.source), destination(other.destination), TTL(other.getTTL()),
 proto(other.proto) {
 
 }
 
-IPv4Address NetworkLayer::getIPSource() const {
+IPv4Address NetworkLayerV4::getIPSource() const {
     return source;
 }
 
-IPv4Address NetworkLayer::getIPDestination() const {
+IPv4Address NetworkLayerV4::getIPDestination() const {
     return destination;
 }
 
-uint8_t NetworkLayer::getTTL() const {
+uint8_t NetworkLayerV4::getTTL() const {
     return TTL;
 }
 
-void NetworkLayer::age() {
+void NetworkLayerV4::age() {
     TTL--;
 }
 
-NetworkLayer* NetworkLayer::clone() const {
-    return new NetworkLayer(*this);
+NetworkLayerV4* NetworkLayerV4::clone() const {
+    return new NetworkLayerV4(*this);
 }
 
-NetworkLayer::IPProtocolType NetworkLayer::getL3Protocol() const {
+NetworkLayerV4::IPv4ProtocolType NetworkLayerV4::getL3Protocol() const {
     return proto;
 }
 
-std::ostream& operator<<(std::ostream& os, const NetworkLayer& other) {
+std::ostream& operator<<(std::ostream& os, const NetworkLayerV4& other) {
     os << (DataLinkLayer&) other;
 	os << "Source IP address: " << other.source << "\n";
     os << "Destination IP address: " << other.destination << "\n";
 	return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const NetworkLayer::IPProtocolType& l3type) {
+std::ostream& operator<<(std::ostream& os, const NetworkLayerV4::IPv4ProtocolType& l3type) {
     switch (l3type) {
-        case NetworkLayer::ICMP: {
+        case NetworkLayerV4::ICMP: {
             os << "ICMP";
             break;
         }
-        case NetworkLayer::IPV4: {
+        case NetworkLayerV4::IPV4: {
             os << "IPV4";
             break;
         }
-        case NetworkLayer::OSPF: {
+        case NetworkLayerV4::OSPF: {
             os << "OSPF";
             break;
         }
-        case NetworkLayer::TCP: {
+        case NetworkLayerV4::TCP: {
             os << "TCP";
             break;
         }
-        case NetworkLayer::UDP: {
+        case NetworkLayerV4::UDP: {
             os << "UDP";
             break;
         }
-        case NetworkLayer::AH: {
+        case NetworkLayerV4::AH: {
             os << "Authentication";
             break;
         }
-        case NetworkLayer::ESP:
-        case NetworkLayer::GRE: {
+        case NetworkLayerV4::ESP:
+        case NetworkLayerV4::GRE: {
             os << "Encapsulation";
             break;
         }
-        case NetworkLayer::SCTP: {
+        case NetworkLayerV4::SCTP: {
             os << "SCTP";
             break;
         }

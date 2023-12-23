@@ -1,4 +1,5 @@
 #include "ipv6.h"
+#include "macaddress.h"
 #include <sstream>
 
 std::array<uint8_t, IPV6_SIZE> IPv6Address::stringToOctets(const std::string& str) {
@@ -102,6 +103,24 @@ Address<IPV6_SIZE>(octets) {}
 
 IPv6Address::IPv6Address(const std::string& str): 
 Address<IPV6_SIZE>(stringToOctets(str)) {}
+
+IPv6Address::IPv6Address(const MACAddress& mAddress): 
+Address<IPV6_SIZE>(std::array<uint8_t, IPV6_SIZE>()) {
+    std::array<uint8_t, MACADDRESS_SIZE> macAddress = mAddress.getOctets();
+    std::array<uint8_t, 16> eui64Address = {0};
+
+    for (int i=0; i<MACADDRESS_SIZE/2; i++)
+        eui64Address[i] = macAddress[i];
+
+    eui64Address[3] = 0xFF;
+    eui64Address[4] = 0xFE;
+
+    for (int i = MACADDRESS_SIZE/2; i < MACADDRESS_SIZE; i++) 
+        eui64Address[i + 2] = macAddress[i];
+
+    eui64Address[0] ^= 0x02;
+    octets = eui64Address;
+}
 
 std::ostream& operator<<(std::ostream& os, const IPv6Address& addr) {
     os << addr.toString();

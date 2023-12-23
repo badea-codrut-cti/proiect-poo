@@ -14,7 +14,7 @@ l2Type(l2) {
     msg = oss.str() + " frame header does not have a matching payload.";
 }
 
-InvalidPayloadException::InvalidPayloadException(NetworkLayer::IPProtocolType l3): 
+InvalidPayloadException::InvalidPayloadException(NetworkLayerV4::IPv4ProtocolType l3): 
 InvalidFrameException("Invalid payload for packet type header."),  
 l3Type(l3) {
     std::ostringstream oss;

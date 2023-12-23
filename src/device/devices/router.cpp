@@ -28,14 +28,15 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
         if (!adapter.hasInterface(data.getMACDestination()))
             return false;
 
-        auto& frame = dynamic_cast<const NetworkLayer&>(data);
+        auto& frame = dynamic_cast<const NetworkLayerV4&>(data);
         
         if (!frame.getTTL())
             return false;
 
         IPv4Address dest = findRoute(frame.getIPDestination());
+        
         if (dest == IPv4Address("127.0.0.1")) {
-            if (frame.getL3Protocol() == NetworkLayer::ICMP) {
+            if (frame.getL3Protocol() == NetworkLayerV4::ICMP) {
                 IPv4Address icmpReturn = findRoute(frame.getIPSource());
                 if (icmpReturn == IPv4Address("127.0.0.1"))
                     return false;
@@ -44,7 +45,7 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
 
                 ICMPPayload pl(ICMPPayload::DEST_UNREACHABLE, 0);
                 DataLinkLayer l2(adapter[fIndex].getMacAddress(), getArpEntryOrBroadcast(icmpReturn), pl, DataLinkLayer::IPV4);
-                NetworkLayer l3(l2, adapter[fIndex].getIPv4Address(), frame.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
+                NetworkLayerV4 l3(l2, adapter[fIndex].getIPv4Address(), frame.getIPSource(), DEFAULT_TTL, NetworkLayerV4::ICMP);
                 adapter[fIndex].sendData(l3);
             }
             return false;

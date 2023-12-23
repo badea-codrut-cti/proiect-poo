@@ -14,11 +14,11 @@ class InvalidFrameException : public std::exception {
 
 class InvalidPayloadException : public InvalidFrameException {
         DataLinkLayer::L2TypeField l2Type{};
-        NetworkLayer::IPProtocolType l3Type{};
+        NetworkLayerV4::IPv4ProtocolType l3Type{};
 
     public:
         explicit InvalidPayloadException(DataLinkLayer::L2TypeField);
-        explicit InvalidPayloadException(NetworkLayer::IPProtocolType);
+        explicit InvalidPayloadException(NetworkLayerV4::IPv4ProtocolType);
 };
 
 //TODO: Fix naming scheme, MACAddress is part of the "frame", not the "packet"

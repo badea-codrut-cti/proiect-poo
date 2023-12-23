@@ -14,7 +14,8 @@ cppcheck --enable=all \
   --suppress=missingIncludeSystem \
   --suppress=unmatchedSuppression \
   --suppress=preprocessorErrorDirective \
-  --suppress=useStlAlgorithm 
+  --suppress=useStlAlgorithm \
+  --suppress=assertWithSideEffect
 
 cd build
 

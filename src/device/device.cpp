@@ -33,10 +33,10 @@ bool Device::sendARPRequest(const IPv4Address& target, bool forced) {
         if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
             return true;
     
-        ARPIpv4 pl(ARPData::REQUEST, adapter[i].getMacAddress(), 
+        ARPIPv4 pl(ARPData::REQUEST, adapter[i].getMacAddress(), 
         MACAddress("00:00:00:00:00:01"), adapter[i].getIPv4Address(), target);
         DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
-        NetworkLayer l3(l2, adapter[i].getIPv4Address(), target);
+        NetworkLayerV4 l3(l2, adapter[i].getIPv4Address(), target);
         return adapter[i].sendData(l3);
     }
 
@@ -63,8 +63,8 @@ bool Device::interfaceCallback([[maybe_unused]]const DataLinkLayer& _data, [[may
 
 bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) {
     try {
-        auto& packet = dynamic_cast<const NetworkLayer&>(data);
-        if (packet.getL3Protocol() != NetworkLayer::ICMP)
+        auto& packet = dynamic_cast<const NetworkLayerV4&>(data);
+        if (packet.getL3Protocol() != NetworkLayerV4::ICMP)
             return false;
 
         if (!adapter.hasInterface(packet.getIPDestination()))
@@ -78,7 +78,7 @@ bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) 
 
             return handlePingRequest(packet, mac);
         } catch(const std::bad_cast&) {
-            throw InvalidPayloadException(NetworkLayer::ICMP);
+            throw InvalidPayloadException(NetworkLayerV4::ICMP);
         }
     } catch(const std::bad_cast&) {
         // Why would we be passed l2 here?
@@ -86,17 +86,17 @@ bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) 
     }
 }
 
-bool Device::handlePingRequest(const NetworkLayer& packet, const MACAddress& mac) {
+bool Device::handlePingRequest(const NetworkLayerV4& packet, const MACAddress& mac) {
     ICMPPayload pl(ICMPPayload::ECHO_REPLY, 0);
     DataLinkLayer l2(packet.getMACDestination(), packet.getMACSource(), pl, DataLinkLayer::IPV4);
-    NetworkLayer l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
+    NetworkLayerV4 l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayerV4::ICMP);
     adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
     return true;
 }
 
 bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
     try {
-        auto payload = dynamic_cast<const ARPIpv4*>(data.getPayload());
+        auto payload = dynamic_cast<const ARPIPv4*>(data.getPayload());
 
         bool isItForMe = adapter.hasInterface(payload->getDestinationIPv4Address());
 
@@ -110,10 +110,10 @@ bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) 
             return isItForMe;
         } else if (isItForMe) {
             MACAddress destMAC = adapter[adapter.getIntefaceIndex(payload->getDestinationIPv4Address())].getMacAddress();
-            ARPIpv4 l2pl(ARPData::REPLY, destMAC, payload->getSourceMacAddress(), 
+            ARPIPv4 l2pl(ARPData::REPLY, destMAC, payload->getSourceMacAddress(), 
             payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
             DataLinkLayer l2(destMAC, payload->getSourceMacAddress(), l2pl, DataLinkLayer::ARP);
-            NetworkLayer l3(l2, payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
+            NetworkLayerV4 l3(l2, payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
             adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
             return true;
         }
@@ -163,13 +163,9 @@ const std::string& Device::getHostname() const {
 
 Device::Device(const Device& other):
 isOn(other.isOn), 
-adapter(*this, other.adapter.interfaceCount(), other.adapter[0].isUnnumbered()),
+adapter(*this, 1, false),
 hostname(other.hostname) {
-    for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
-        adapter[i].setSpeed(other.adapter[i].getSpeed());
-        if (!other.adapter[i].getState())
-            adapter[i].turnOff();
-    }
+    adapter.copy(*this, other.adapter);
 }
 
 Device* Device::clone() const {

@@ -2,10 +2,6 @@
 
 // "Daca mai intrii in help, usa de la intrare ti-e default gateway."
 class EndDevice : public Device {
-    private:
-        IPv4Address defaultGatewayV4{};
-        IPv6Address defaultGatewayV6{};
-
     public:
         EndDevice();
         EndDevice(const EndDevice&);

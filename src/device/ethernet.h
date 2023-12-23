@@ -1,6 +1,7 @@
 #include "../date/ipv4.h"
 #include "../date/ipv6.h"
 #include "../date/osi/datalink.h"
+#include <vector>
 
 #ifndef ETHERNET_H
 #define ETHERNET_H
@@ -18,9 +19,15 @@ class EthernetInterface {
         Device& device;
         EthernetInterface* link{nullptr};
 
+        IPv4Address defaultGatewayV4{};
+        IPv6Address defaultGatewayV6{};
+
         SubnetAddressV4 addressV4;
 
         MACAddress macAddress;
+
+        std::vector<SubnetAddressV6> globalUnicastAddresses;
+        IPv6Address linkLocalAddress;
         const MACAddress burnAddress;
         bool isOn{true}, unnumbered;
 
@@ -57,6 +64,19 @@ class EthernetInterface {
         bool sendData(const DataLinkLayer&);
 
         bool disconnect();
+
+        bool setDefaultGateway(const IPv4Address&);
+        bool setDefaultGateway(const IPv6Address&);
+
+        bool addGlobalUnicastAddress(const SubnetAddressV6&);
+        bool removeGlobalUnicastAddress(const SubnetAddressV6&);
+
+        [[nodiscard]] std::vector<SubnetAddressV6> getGlobalUnicastAddresses() const;
+
+        [[nodiscard]] IPv6Address getLinkLocalAddress() const;
+
+        [[nodiscard]] IPv6Address getIPv6DefaultGateway() const;
+        [[nodiscard]] IPv4Address getIPv4DefaultGateway() const;
 
         [[nodiscard]] unsigned long long getMaxSpeed() const;
 
