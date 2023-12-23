@@ -87,6 +87,11 @@ Address<IPV4_SIZE>(stringToOctets(str)) {
 
 }
 
+IPv4Address& IPv4Address::operator=(const IPv4Address& other) {
+    octets = other.octets;
+    return *this;
+}
+
 std::string IPv4Address::toString() const {
     std::ostringstream oss;
     for (size_t i = 0; i < IPV4_SIZE; ++i) {

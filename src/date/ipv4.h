@@ -20,6 +20,8 @@ class IPv4Address : public Address<IPV4_SIZE> {
         explicit IPv4Address(const std::array<uint8_t, IPV4_SIZE>&);
         explicit IPv4Address(const std::string&);
 
+        IPv4Address& operator=(const IPv4Address&);
+
         [[nodiscard]] std::string toString() const;
 };
 

@@ -53,6 +53,12 @@ bool MACAddress::isMulticast() const {
     return (octets[0] & 0x01) == 1;
 }
 
+MACAddress& MACAddress::operator=(const MACAddress& other) {
+    octets = other.octets;
+
+    return *this;
+}
+
 std::ostream& operator<<(std::ostream& os, const MACAddress& mac) {
     os << mac.toString();
     return os;

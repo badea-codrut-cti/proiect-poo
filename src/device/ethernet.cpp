@@ -13,10 +13,12 @@ bool EthernetInterface::receiveData(const DataLinkLayer& data) {
 }
 
 EthernetInterface::EthernetInterface(Device& _device, unsigned long long maxSpeed, bool isUnnumbered):
-device(_device), linkLocalAddress(macAddress),
- macAddress((publicMACCounter += 1).getOctets()), burnAddress(macAddress), 
-unnumbered(isUnnumbered), speed(maxSpeed), maxSpeed(maxSpeed), 
-bandwidth(maxSpeed) {
+device(_device),
+macAddress((publicMACCounter += 1).getOctets()), 
+linkLocalAddress(macAddress),
+burnAddress(macAddress), 
+unnumbered(isUnnumbered), 
+speed(maxSpeed), maxSpeed(maxSpeed), bandwidth(maxSpeed) {
 }
 
 EthernetInterface::~EthernetInterface() {

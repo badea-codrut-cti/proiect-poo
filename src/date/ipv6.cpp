@@ -122,6 +122,12 @@ Address<IPV6_SIZE>(std::array<uint8_t, IPV6_SIZE>()) {
     octets = eui64Address;
 }
 
+IPv6Address& IPv6Address::operator=(const IPv6Address& other) {
+    octets = other.octets;
+
+    return *this;
+}
+
 std::ostream& operator<<(std::ostream& os, const IPv6Address& addr) {
     os << addr.toString();
     return os;

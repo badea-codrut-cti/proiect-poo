@@ -21,6 +21,8 @@ class IPv6Address : public Address<IPV6_SIZE> {
         explicit IPv6Address(const std::string&);
         explicit IPv6Address(const MACAddress&);
 
+        IPv6Address& operator=(const IPv6Address&);
+
         [[nodiscard]] std::string toString() const;
 };
 

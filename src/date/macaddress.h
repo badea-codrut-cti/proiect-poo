@@ -21,6 +21,8 @@ class MACAddress : public Address<MACADDRESS_SIZE> {
 
         MACAddress(const MACAddress&);
 
+        MACAddress& operator=(const MACAddress&);
+
 	    explicit MACAddress(const std::array<uint8_t, MACADDRESS_SIZE>&);
 
         explicit MACAddress(const std::string&);
