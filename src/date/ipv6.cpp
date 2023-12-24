@@ -1,5 +1,6 @@
 #include "ipv6.h"
 #include "macaddress.h"
+#include "subnetaddress.h"
 #include <sstream>
 
 std::array<uint8_t, IPV6_SIZE> IPv6Address::stringToOctets(const std::string& str) {
@@ -139,6 +140,21 @@ std::string SubnetAddressV6::toString() const {
     sstr << "/" << subnetMask;
 
     return sstr.str();
+}
+
+SubnetAddressV6::SubnetAddressV6() : 
+SubnetAddress<IPV6_SIZE, IPv6Address>(IPv6Address(), 64) {
+
+}
+
+SubnetAddressV6::SubnetAddressV6(IPv6Address addr):
+SubnetAddress<IPV6_SIZE, IPv6Address>(addr, 64) {
+
+}
+
+SubnetAddressV6::SubnetAddressV6(IPv6Address addr, uint8_t sMask):
+SubnetAddress<IPV6_SIZE, IPv6Address>(addr, sMask) {
+
 }
 
 std::ostream& operator<<(std::ostream& os, const SubnetAddressV6& addr) {

@@ -76,3 +76,8 @@ bool Router::addStaticRoute(const SubnetAddressV4& subnet, const IPv4Address& ip
     routes.insert(std::make_pair(subnet, ip));
     return true;
 }
+
+bool Router::addStaticRoute(const SubnetAddressV6& subnet, const IPv6Address& ip) {
+    routesV6.insert(std::make_pair(subnet, ip));
+    return true;
+}

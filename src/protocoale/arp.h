@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <ostream>
 #include "../date/ipv4.h"
-#include "../date/ipv6.h"
 #include "../date/macaddress.h"
 #include "./payload.h"
 
@@ -98,25 +97,4 @@ class ARPIPv4 : public ARPPayload<MACADDRESS_SIZE, IPV4_SIZE> {
 
         [[nodiscard]] L2Payload* clone() const override;
 };
-
-class ARPIPv6 : public ARPPayload<MACADDRESS_SIZE, IPV6_SIZE> {
-public:
-        ARPIPv6(ARPData::Operation, const MACAddress&, const MACAddress&, 
-        const IPv6Address&, const IPv6Address&);
-
-        ~ARPIPv6();
-
-        [[nodiscard]] MACAddress getSourceMacAddress() const;
-
-        [[nodiscard]] MACAddress getDestinationMacAddress() const;
-
-        [[nodiscard]] IPv6Address getSourceIPv6Address() const;
-
-        [[nodiscard]] IPv6Address getDestinationIPv6Address() const;
-
-        [[nodiscard]] ARPData::Operation getOperation() const;
-
-        [[nodiscard]] L2Payload* clone() const override;
-};
-
 #endif

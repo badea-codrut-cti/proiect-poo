@@ -19,8 +19,6 @@ class SubnetAddress : public T {
 
         SubnetAddress(const SubnetAddress<N, T>&);
 
-        SubnetAddress();
-
         [[nodiscard]] std::string toString() const;
 
         [[nodiscard]] T getNetworkAddress() const;

@@ -15,6 +15,7 @@ const std::string DEFAULT_DEVICE_HOSTNAME = "Device";
 class Device {
     private:
         std::map<IPv4Address, MACAddress> arpCache{};
+        std::map<IPv6Address, MACAddress> ndCache{};
         std::vector<std::function<bool(const DataLinkLayer&, const MACAddress&)>> listeners{};
 
     protected:
@@ -27,6 +28,8 @@ class Device {
         MACAddress getArpEntryOrBroadcast(const IPv4Address&);
 
         bool checkPingRequest(const DataLinkLayer&, const MACAddress&);
+
+        virtual bool handleNDPRequest(const DataLinkLayer&, const MACAddress&);
 
         virtual bool handleARPRequest(const DataLinkLayer&, const MACAddress&);
 

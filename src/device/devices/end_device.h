@@ -1,6 +1,8 @@
 #include "../device.h"
 
-// "Daca mai intrii in help, usa de la intrare ti-e default gateway."
+#ifndef END_DEVICE_H
+#define END_DEVICE_H
+
 class EndDevice : public Device {
     public:
         EndDevice();
@@ -25,3 +27,5 @@ class EndDevice : public Device {
         [[nodiscard]] IPv4Address getIPv4DefaultGateway() const;
         [[nodiscard]] IPv4Address getIPv6DefaultGateway() const;
 };  
+
+#endif

@@ -9,14 +9,14 @@ class DataLinkLayer {
         // https://www.iana.org/assignments/ieee-802-numbers/ieee-802-numbers.xhtml
         // FIXME: This is an oversimplification, Dot1Q has multiple assigned numbers
         enum L2TypeField : uint16_t {
-            IPV4    =  2048,
-            ARP     =  2054,
+            IPV4         =  2048,
+            ARP          =  2054,
             VLAN_CTAG    =  33024,
-            DOT1X   =  34958,
-            DOT1Q   =  34984,
-            MPLS    =  33767,
-            LLDP    =  35020,
-            IPV6    =  34525
+            DOT1X        =  34958,
+            DOT1Q        =  34984,
+            MPLS         =  33767,
+            LLDP         =  35020,
+            IPV6         =  34525
         };
 
     private:

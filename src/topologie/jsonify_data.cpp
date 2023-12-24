@@ -52,7 +52,7 @@ json frameToJson(const DataLinkLayer& data) {
         return ret;
 
     try {
-        auto& packet = dynamic_cast<const NetworkLayer&>(data);
+        auto& packet = dynamic_cast<const NetworkLayerV4&>(data);
         ret["ipSource"] = packet.getIPSource().toString();
         ret["ipDestination"] = packet.getIPDestination().toString();
         ret["TTL"] = packet.getTTL();
@@ -63,7 +63,7 @@ json frameToJson(const DataLinkLayer& data) {
 
         ret["data"] = json::object();
         switch (packet.getL3Protocol()) {
-            case NetworkLayer::ICMP: {
+            case NetworkLayerV4::ICMP: {
                 try {
                     auto icmp = dynamic_cast<const ICMPPayload*>(packet.getPayload());
                     ret["data"]["type"] = icmp->getType();

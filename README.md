@@ -69,3 +69,7 @@ Simulator de protocoale si topologii de retea.
 [Webview](https://github.com/webview/webview)
 
 [Cisco Network Topology Icons](https://vecta.io/symbols/240/cisco-network-topology-icons-3015)
+
+[Neighbor Discovery Protocol](https://datatracker.ietf.org/doc/html/rfc4861)
+
+[Multicast MAC addresses](https://support.huawei.com/enterprise/en/doc/EDOC1100127200/d30cdf7f/overview-of-multicast-mac-addresses)

@@ -1,8 +1,6 @@
 #include "./network.h"
 #include <iostream>
 
-// "Copilu, ce e ala Datagram? Nu exista, dom student."
-
 NetworkLayerV4::NetworkLayerV4(DataLinkLayer& layer, const IPv4Address& sourceIP, const IPv4Address& destIP, 
 uint8_t ttl, IPv4ProtocolType l3proto): 
 DataLinkLayer(layer), source(sourceIP), destination(destIP), TTL(ttl), proto(l3proto) {
@@ -87,4 +85,47 @@ std::ostream& operator<<(std::ostream& os, const NetworkLayerV4::IPv4ProtocolTyp
         }
     }
     return os;
+}
+
+NetworkLayerV6::NetworkLayerV6(DataLinkLayer& l2, const IPv6Address& srcIp, 
+const IPv6Address& destIp, uint8_t hLimit, IPv6ProtocolType pType): 
+DataLinkLayer(l2),
+source(srcIp), destination(destIp), hopLimit(hLimit), proto(pType) {
+
+}
+
+NetworkLayerV6::NetworkLayerV6(const NetworkLayerV6& other):
+DataLinkLayer(other), source(other.source), destination(other.destination),
+hopLimit(other.hopLimit), proto(other.proto) {
+
+}
+
+void age();
+
+IPv6Address NetworkLayerV6::getIPSource() const {
+    return source;
+}
+
+IPv6Address NetworkLayerV6::getIPDestination() const {
+    return destination;
+}
+
+uint8_t NetworkLayerV6::getHopLimit() const {
+    return hopLimit;
+}
+
+NetworkLayerV6* NetworkLayerV6::clone() const {
+    return new NetworkLayerV6(*this);
+}
+
+NetworkLayerV6::IPv6ProtocolType 
+NetworkLayerV6::getL3Protocol() const {
+    return proto;
+}
+
+std::ostream& operator<<(std::ostream& os, const NetworkLayerV6& other) {
+    os << (DataLinkLayer&) other;
+	os << "Source IP address: " << other.source << "\n";
+    os << "Destination IP address: " << other.destination << "\n";
+	return os;
 }

@@ -1,4 +1,5 @@
 #include "./payload.h"
+#include "../date/ipv6.h"
 
 #ifndef ICMP_H
 #define ICMP_H
@@ -32,11 +33,46 @@ class ICMPPayload : public L2Payload {
 
         ICMPPayload& operator=(const ICMPPayload&);
 
-        [[nodiscard]] L2Payload* clone() const override;
+        [[nodiscard]] ICMPPayload* clone() const override;
 
         [[nodiscard]] ICMPType getType() const;
 
         [[nodiscard]] uint8_t getCode() const;
 };  
+
+class NDPPayload : public L2Payload {
+    public:
+        enum NDPOperation : uint8_t {
+            ROUTER_SOLICITATION = 133,
+            ROUTER_ADVERTISEMENT = 134,
+            NEIGHBOR_SOLICITATION = 135,
+            NEIGHBOR_ADVERTISEMENT = 136,
+            REDIRECT_MESSAGE = 137
+        };
+
+    private: 
+        NDPOperation ndpOperation;
+        uint8_t ndpCode;
+        IPv6Address targetAddress;
+
+    protected:
+        void print(std::ostream&) const override;
+
+    public:
+        NDPPayload(NDPOperation, uint8_t, const IPv6Address&);
+
+        NDPPayload(const NDPPayload&);
+
+        NDPPayload& operator=(const NDPPayload&);
+
+        [[nodiscard]] NDPPayload* clone() const override;
+
+        [[nodiscard]] NDPOperation getOperation() const;
+
+        [[nodiscard]] uint8_t getCode() const;
+
+        [[nodiscard]] IPv6Address getTargetAddress() const;
+
+};
 
 #endif

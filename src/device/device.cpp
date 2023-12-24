@@ -4,6 +4,7 @@
 #include "../date/osi/osiexcept.h"
 #include <stdexcept>
 #include <iostream>
+#include <typeinfo>
 
 Device::Device(uint8_t interfaceCount, bool unnumbered, std::string hostname): 
 adapter(*this, interfaceCount, unnumbered), hostname(std::move(hostname)) {
@@ -62,6 +63,9 @@ bool Device::interfaceCallback([[maybe_unused]]const DataLinkLayer& _data, [[may
 }
 
 bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) {
+    if (data.getL2Type() != DataLinkLayer::IPV4)
+        return false;
+
     try {
         auto& packet = dynamic_cast<const NetworkLayerV4&>(data);
         if (packet.getL3Protocol() != NetworkLayerV4::ICMP)
@@ -95,6 +99,9 @@ bool Device::handlePingRequest(const NetworkLayerV4& packet, const MACAddress& m
 }
 
 bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
+    if (data.getL2Type() != DataLinkLayer::ARP)
+        return false;
+    
     try {
         auto payload = dynamic_cast<const ARPIPv4*>(data.getPayload());
 
@@ -124,6 +131,70 @@ bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) 
     return false;
 }
 
+bool Device::handleNDPRequest(const DataLinkLayer& data, const MACAddress&) {
+    if (data.getL2Type() != DataLinkLayer::IPV6)
+        return false;
+
+    uint8_t fOct = data.getMACDestination().getOctets()[0],
+        sOct = data.getMACDestination().getOctets()[1];
+
+    if (fOct == 0x33 && sOct == 0x33) {
+        // Hopefully a neighbor solicitation
+
+        for (size_t i = 0; i < adapter.interfaceCount(); i++) {
+            for (auto& addr : adapter[i].getGlobalUnicastAddresses()) {
+                bool ok = true;
+                for (size_t j = MACADDRESS_SIZE-1; j >= 2 && ok; j--) 
+                    if (addr.getOctets()[j + (IPV6_SIZE - MACADDRESS_SIZE)] != 
+                        data.getMACDestination().getOctets()[j])
+                        ok = false;
+                    
+                if (!ok)
+                    continue;
+
+                // It most likely is
+
+                try {
+                    auto ndpPayload = dynamic_cast<const NDPPayload*>(data.getPayload());
+                    
+                    if (ndpPayload->getOperation() != NDPPayload::NEIGHBOR_SOLICITATION) 
+                        return false;
+                    
+                    auto l3data = dynamic_cast<const NetworkLayerV6&>(data);
+
+                    NDPPayload response(NDPPayload::NEIGHBOR_ADVERTISEMENT, 0, addr);
+                    DataLinkLayer l2(adapter[i].getMacAddress(), l3data.getMACSource(),
+                     response, DataLinkLayer::IPV6);
+                    NetworkLayerV6 l3(l2, addr, l3data.getIPSource(), DEFAULT_HOP_LIMIT, NetworkLayerV6::ICMPv6);
+                    adapter[i].sendData(l3);
+
+                    return true;
+                } catch(const std::bad_cast&) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    try {
+        auto ndpPayload = dynamic_cast<const NDPPayload*>(data.getPayload());
+
+        if (ndpPayload->getOperation() == NDPPayload::NEIGHBOR_ADVERTISEMENT) {
+            ndCache.insert(
+                std::make_pair(
+                    ndpPayload->getTargetAddress(), data.getMACSource()
+                )
+            );
+            return true;
+        }
+
+    } catch (const std::bad_cast&) {
+        return false;
+    }
+
+    return false;
+}
+
 bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface) {
     if (!isOn)
         return false;
@@ -131,13 +202,14 @@ bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface
     if (!adapter.hasInterface(interface.getMacAddress()))
         throw std::invalid_argument("Interface does not belong in the network adapter.");
 
-    if (data.getL2Type() == DataLinkLayer::ARP && handleARPRequest(data, interface.getMacAddress())) { 
+    if (handleARPRequest(data, interface.getMacAddress())) 
         return true;
-    }
 
-    if (data.getL2Type() == DataLinkLayer::IPV4 && checkPingRequest(data, interface.getMacAddress())) {
+    if (checkPingRequest(data, interface.getMacAddress())) 
         return true;
-    }
+
+    if (handleNDPRequest(data, interface.getMacAddress()))
+        return true;
 
     for (const auto& listener : listeners) {
         if (listener(data, interface.getMacAddress()))
