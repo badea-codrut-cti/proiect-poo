@@ -27,6 +27,21 @@ json deviceToJson(const Device* pDevice) {
             interface["ip"]["subnetMask"] = json::object();
             interface["ip"]["subnetMask"]["dotNotation"] = ether.getIPv4Address().getMaskDotNotation().toString();
             interface["ip"]["subnetMask"]["slashNotation"] = ether.getIPv4Address().getSubnetMask();
+
+            interface["ip"]["defaultGateway"] = ether.getIPv4DefaultGateway().toString();
+
+            interface["ipv6"] = json::object();
+            interface["ipv6"]["gua"] = json::array();
+
+            for (auto& gua : ether.getGlobalUnicastAddresses()) {
+                json outGua = json::object();
+                outGua["address"] = IPv6Address(gua.getOctets()).toString();
+                outGua["prefix"] = gua.getSubnetMask();
+                interface["ipv6"]["gua"].push_back(outGua);
+            }
+
+            interface["ipv6"]["defaultGateway"] = ether.getIPv6DefaultGateway().toString();
+            interface["ipv6"]["linkLocalAddress"] = ether.getLinkLocalAddress().toString();
         }
         outDevice["interfaces"][i] = interface;
     }

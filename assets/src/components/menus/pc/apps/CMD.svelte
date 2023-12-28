@@ -3,7 +3,6 @@
 </script>
 
 <div class="terminal-window">
-    <span class="block">C:\> @echo off</span>
     <span class="inline-block">C:\></span>
     <textarea class="invisible-textarea"></textarea>
 </div>

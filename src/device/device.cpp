@@ -11,10 +11,25 @@ adapter(*this, interfaceCount, unnumbered), hostname(std::move(hostname)) {
 
 }
 
-MACAddress Device::getArpEntryOrBroadcast(const IPv4Address& ip) {
+MACAddress Device::getArpEntryOrBroadcast(const IPv4Address& ip) const {
     auto it = arpCache.find(ip);
     if (it == arpCache.end())
         return MACAddress{MACAddress::broadcastAddress};
+    return it->second;
+}
+
+MACAddress Device::getNDPEntryOrMulticast(const IPv6Address& ip) const {
+    auto it = ndCache.find(ip);
+    if (it == ndCache.end()) {
+        std::array<uint8_t, MACADDRESS_SIZE> ret{};
+        ret[0] = 0x33;
+        ret[1] = 0x33;
+
+        for (size_t j = MACADDRESS_SIZE-1; j >= 2; j--) 
+            ret[j] = ip.getOctets()[j + (IPV6_SIZE - MACADDRESS_SIZE)];
+        
+        return MACAddress(ret);
+    }
     return it->second;
 }
 
@@ -27,21 +42,48 @@ void Device::setHostname(const std::string& str) {
 }
 
 bool Device::sendARPRequest(const IPv4Address& target, bool forced) {
-    for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
-        if (!adapter[i].getIPv4Address().isInSameSubnet(target))
+    if (!adapter.hasInterfaceInSubnet(target))
+        return false;
+
+    if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
+        return true;
+
+    size_t fIndex = adapter.findInSubnet(target);
+
+    ARPIPv4 pl(ARPData::REQUEST, adapter[fIndex].getMacAddress(), 
+    MACAddress("00:00:00:00:00:01"), adapter[fIndex].getIPv4Address(), target);
+    DataLinkLayer l2(adapter[fIndex].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
+    NetworkLayerV4 l3(l2, adapter[fIndex].getIPv4Address(), target);
+    return adapter[fIndex].sendData(l3);
+}
+
+bool Device::sendNDPRequest(const IPv6Address& target, bool forced) {
+    if (!adapter.hasInterfaceInSubnet(target))
+        return false;
+
+    auto it = ndCache.find(target);
+    if (it != ndCache.end() && !forced)
+        return true;
+
+    std::array<uint8_t, MACADDRESS_SIZE> ret{};
+    ret[0] = 0x33;
+    ret[1] = 0x33;
+
+    for (size_t j = MACADDRESS_SIZE-1; j >= 2; j--) 
+        ret[j] = target.getOctets()[j + (IPV6_SIZE - MACADDRESS_SIZE)];
+        
+    size_t fIndex = adapter.findInSubnet(target);
+
+    for (auto& gua : adapter[fIndex].getGlobalUnicastAddresses()) {
+        if (!gua.isInSameSubnet(target))
             continue;
 
-        if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
-            return true;
-    
-        ARPIPv4 pl(ARPData::REQUEST, adapter[i].getMacAddress(), 
-        MACAddress("00:00:00:00:00:01"), adapter[i].getIPv4Address(), target);
-        DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
-        NetworkLayerV4 l3(l2, adapter[i].getIPv4Address(), target);
-        return adapter[i].sendData(l3);
+        NDPPayload pl(NDPPayload::NEIGHBOR_SOLICITATION, 0, target);
+        DataLinkLayer l2(adapter[fIndex].getMacAddress(), MACAddress(ret), pl, DataLinkLayer::IPV6);
+        NetworkLayerV6 l3(l2, gua, target);
+        return adapter[fIndex].sendData(l3);
     }
 
-    //throw std::invalid_argument("Cannot find interface with IP in the same subnet as ARP destination.");
     return false;
 }
 
@@ -157,7 +199,7 @@ bool Device::handleNDPRequest(const DataLinkLayer& data, const MACAddress&) {
                 try {
                     auto ndpPayload = dynamic_cast<const NDPPayload*>(data.getPayload());
                     
-                    if (ndpPayload->getOperation() != NDPPayload::NEIGHBOR_SOLICITATION) 
+                    if (ndpPayload->getType() != NDPPayload::NEIGHBOR_SOLICITATION) 
                         return false;
                     
                     auto l3data = dynamic_cast<const NetworkLayerV6&>(data);
@@ -179,7 +221,7 @@ bool Device::handleNDPRequest(const DataLinkLayer& data, const MACAddress&) {
     try {
         auto ndpPayload = dynamic_cast<const NDPPayload*>(data.getPayload());
 
-        if (ndpPayload->getOperation() == NDPPayload::NEIGHBOR_ADVERTISEMENT) {
+        if (ndpPayload->getType() == NDPPayload::NEIGHBOR_ADVERTISEMENT) {
             ndCache.insert(
                 std::make_pair(
                     ndpPayload->getTargetAddress(), data.getMACSource()

@@ -25,7 +25,9 @@ class Device {
 
         std::string hostname;
 
-        MACAddress getArpEntryOrBroadcast(const IPv4Address&);
+        MACAddress getArpEntryOrBroadcast(const IPv4Address&) const;
+
+        MACAddress getNDPEntryOrMulticast(const IPv6Address&) const;
 
         bool checkPingRequest(const DataLinkLayer&, const MACAddress&);
 
@@ -53,6 +55,8 @@ class Device {
         void setHostname(const std::string&);
 
         virtual bool sendARPRequest(const IPv4Address&, bool);
+
+        virtual bool sendNDPRequest(const IPv6Address&, bool);
 
         [[nodiscard]] virtual Device* clone() const;
 

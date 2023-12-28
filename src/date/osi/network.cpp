@@ -123,6 +123,10 @@ NetworkLayerV6::getL3Protocol() const {
     return proto;
 }
 
+void NetworkLayerV6::age() {
+    hopLimit--;
+}
+
 std::ostream& operator<<(std::ostream& os, const NetworkLayerV6& other) {
     os << (DataLinkLayer&) other;
 	os << "Source IP address: " << other.source << "\n";

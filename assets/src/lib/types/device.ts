@@ -16,7 +16,16 @@ export type EthernetInterface = {
         subnetMask: {
             dotNotation: string,
             slashNotation: number
-        }
+        },
+        defaultGateway: string
+    },
+    ipv6: {
+        gua: {
+            address: string,
+            prefix: number
+        }[],
+        defaultGateway: string,
+        linkLocalAddress: string
     },
     isOn: boolean,
     isUnnumbered: boolean,

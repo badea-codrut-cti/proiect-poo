@@ -61,7 +61,7 @@ void test_ipv6() {
     assert(add1.getOctets()[0] == 0xFE && add1.getOctets()[IPV6_SIZE-1] == 0x01);
 
     try {
-        IPv6Address("FE80::1::2");
+        IPv6Address iptest("FE80::1::2");
         assert(false);
     } catch(const std::invalid_argument&) {}
 }

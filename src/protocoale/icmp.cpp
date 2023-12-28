@@ -36,27 +36,60 @@ void ICMPPayload::print(std::ostream& o) const {
     o << "Code: " << (int) plCode << "\n";
 }
 
+ICMPv6Payload::ICMPv6Payload(uint8_t type, uint8_t code):
+plType(type), plCode(code) {
+
+}
+
+ICMPv6Payload::ICMPv6Payload(const ICMPv6Payload& other):
+plType(other.plType), plCode(other.plCode) {
+
+}
+
+ICMPv6Payload& ICMPv6Payload::operator=(const ICMPv6Payload& other) {
+    plType = other.plType;
+    plCode = other.plCode;
+
+    return *this;
+}
+
+ICMPv6Payload* ICMPv6Payload::clone() const {
+    return new ICMPv6Payload(*this);
+}
+
+uint8_t ICMPv6Payload::getType() const {
+    return plType;
+}
+
+uint8_t ICMPv6Payload::getCode() const {
+    return plCode;
+}
+
+void ICMPv6Payload::print(std::ostream& o) const {
+    o << "ICMPv6 Payload\n";
+    o << "Operation: " << (int) plType << "\n";
+    o << "Code: " << (int) plCode << "\n";
+}
+
 void NDPPayload::print(std::ostream& o) const {
     o << "NDP Payload\n";
-    o << "Operation: " << (int) ndpOperation << "\n";
-    o << "Target address: " << targetAddress << "\n";
-    o << "Code: " << (int) ndpCode << "\n";
+    o << "Operation: " << (int) plType << "\n";
+    o << "Code: " << (int) plCode << "\n";
+     o << "Target address: " << targetAddress << "\n";
 }
 
 NDPPayload::NDPPayload(NDPOperation operation, uint8_t code, const IPv6Address& target):
-ndpOperation(operation), ndpCode(code), targetAddress(target) {
+ICMPv6Payload(operation, code), targetAddress(target) {
 
 }
 
 NDPPayload::NDPPayload(const NDPPayload& other):
-ndpOperation(other.ndpOperation), ndpCode(other.ndpCode), 
-targetAddress(other.targetAddress) {
+ICMPv6Payload(other), targetAddress(other.targetAddress) {
 
 }
 
 NDPPayload& NDPPayload::operator=(const NDPPayload& other) {
-    ndpOperation = other.ndpOperation;
-    ndpCode = other.ndpCode;
+    ICMPv6Payload::operator=(other);
     targetAddress = other.targetAddress;
 
     return *this;
@@ -64,14 +97,6 @@ NDPPayload& NDPPayload::operator=(const NDPPayload& other) {
 
 NDPPayload* NDPPayload::clone() const {
     return new NDPPayload(*this);
-}
-
-NDPPayload::NDPOperation NDPPayload::getOperation() const {
-    return ndpOperation;
-}
-
-uint8_t NDPPayload::getCode() const {
-    return ndpCode;
 }
 
 IPv6Address NDPPayload::getTargetAddress() const {

@@ -129,6 +129,30 @@ IPv6Address& IPv6Address::operator=(const IPv6Address& other) {
     return *this;
 }
 
+bool IPv6Address::isLinkLocalAddress() const {
+    if (octets[0] != 0xFE || (octets[1] & 0xCF) != octets[1])
+        return false;
+
+    for (int i=2; i<6;i++)
+        if (octets[i] != 0)
+            return false;
+    
+    return true;
+}
+
+bool IPv6Address::isMulticastAddress() const {
+    return octets[0] == 0xFF;
+}
+
+bool IPv6Address::isLoopbackAddress() const {
+    for (int i = 0; i < 15; ++i) {
+        if (octets[i] != 0) {
+            return false;
+        }
+    }
+    return octets[15] == 1;
+}
+
 std::ostream& operator<<(std::ostream& os, const IPv6Address& addr) {
     os << addr.toString();
     return os;

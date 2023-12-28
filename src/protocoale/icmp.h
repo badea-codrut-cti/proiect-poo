@@ -40,7 +40,38 @@ class ICMPPayload : public L2Payload {
         [[nodiscard]] uint8_t getCode() const;
 };  
 
-class NDPPayload : public L2Payload {
+class ICMPv6Payload : public L2Payload {
+    public:
+        enum ICMPv6Type : uint8_t {
+            DEST_UNREACHABLE = 1,
+            PACKET_TOO_BIG = 2,
+            TIME_EXCEEDED = 3,
+            PARAMETER_PROBLEM = 4,
+            ECHO_REQUEST = 128,
+            ECHO_REPLY = 129,
+            REDIRECT_MESSAGE = 137
+        };
+
+    protected:
+        uint8_t plType;
+        uint8_t plCode;
+
+        void print(std::ostream&) const override;
+    public:
+        ICMPv6Payload(uint8_t, uint8_t);
+
+        ICMPv6Payload(const ICMPv6Payload&);
+
+        ICMPv6Payload& operator=(const ICMPv6Payload&);
+
+        [[nodiscard]] ICMPv6Payload* clone() const override;
+
+        [[nodiscard]] uint8_t getType() const;
+
+        [[nodiscard]] uint8_t getCode() const;
+};
+
+class NDPPayload : public ICMPv6Payload {
     public:
         enum NDPOperation : uint8_t {
             ROUTER_SOLICITATION = 133,
@@ -51,8 +82,6 @@ class NDPPayload : public L2Payload {
         };
 
     private: 
-        NDPOperation ndpOperation;
-        uint8_t ndpCode;
         IPv6Address targetAddress;
 
     protected:
@@ -66,10 +95,6 @@ class NDPPayload : public L2Payload {
         NDPPayload& operator=(const NDPPayload&);
 
         [[nodiscard]] NDPPayload* clone() const override;
-
-        [[nodiscard]] NDPOperation getOperation() const;
-
-        [[nodiscard]] uint8_t getCode() const;
 
         [[nodiscard]] IPv6Address getTargetAddress() const;
 

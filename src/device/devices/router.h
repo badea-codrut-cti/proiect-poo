@@ -14,8 +14,8 @@ class Router: public Device {
         std::map<SubnetAddressV4, IPv4Address> routes{};
         std::map<SubnetAddressV6, IPv6Address> routesV6{};
 
-        IPv4Address findRoute(const IPv4Address&);
-        IPv4Address findRoute(const IPv6Address&);
+        [[nodiscard]] IPv4Address findRoute(const IPv4Address&) const;
+        [[nodiscard]] IPv6Address findRoute(const IPv6Address&) const;
 
     public:
         Router();
