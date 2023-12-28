@@ -258,7 +258,7 @@ bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface
             return true;
     }
 
-    int fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
+    size_t fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
     
     return interfaceCallback(data, fIndex);
 }

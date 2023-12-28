@@ -3,8 +3,6 @@
 #include "./transport.h"
 #include <iostream>
 
-// "Copilu' filmele au 24 FPS din cauza la Coca Cola"
-
 TransportLayer::TransportLayer(NetworkLayer& layer, uint16_t _sourcePort, uint16_t _destinationPort): 
 NetworkLayer(layer), sourcePort(_sourcePort), destinationPort(_destinationPort) {
 

@@ -1,7 +1,6 @@
 #include "./l2switch.h"
 #include "../adapter.h"
 
-// "Ai control complet asupra echipamentului?"
 bool L2Switch::interfaceCallback(const DataLinkLayer& data, uint8_t fIndex) {
     auto it = arpRouteCache.find(data.getMACDestination());
     if (data.getMACDestination() == MACAddress(MACAddress::broadcastAddress)

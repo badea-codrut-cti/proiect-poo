@@ -6,7 +6,6 @@
 #include "./ipv4.h"
 #include "subnetaddress.h"
 
-// "Nimeni nu iti da tie o adresa statica de clasa A, nu exista dom student"
 std::array<uint8_t, IPV4_SIZE> IPv4Address::stringToOctets(const std::string& str) {
     std::istringstream iss(str);
     std::string token;
@@ -146,11 +145,11 @@ std::string SubnetAddressV4::toString() const {
     return str.str();
 }
 
-bool SubnetAddressV4::isLoopbackAddress() const {
+bool IPv4Address::isLoopbackAddress() const {
     return octets[0] == 127;
 }
 
-bool SubnetAddressV4::isMulticastAddress() const {
+bool IPv4Address::isMulticastAddress() const {
     return (octets[0] >> 4) == 0xE;
 }
 

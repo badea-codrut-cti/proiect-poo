@@ -171,12 +171,12 @@ SubnetAddress<IPV6_SIZE, IPv6Address>(IPv6Address(), 64) {
 
 }
 
-SubnetAddressV6::SubnetAddressV6(IPv6Address addr):
+SubnetAddressV6::SubnetAddressV6(const IPv6Address& addr):
 SubnetAddress<IPV6_SIZE, IPv6Address>(addr, 64) {
 
 }
 
-SubnetAddressV6::SubnetAddressV6(IPv6Address addr, uint8_t sMask):
+SubnetAddressV6::SubnetAddressV6(const IPv6Address& addr, uint8_t sMask):
 SubnetAddress<IPV6_SIZE, IPv6Address>(addr, sMask) {
 
 }

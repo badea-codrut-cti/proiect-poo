@@ -1,7 +1,5 @@
 #include "../device.h"
 
-// "Ce v-am zis eu ca tot ce e gresit se intoarce in zero?"
-
 #ifndef ROUTER_H
 #define ROUTER_H
 

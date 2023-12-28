@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <iostream>
 
-// "Nu esti conectat la eternet, ai restanta puisor"
 bool EthernetInterface::receiveData(const DataLinkLayer& data) {
     if (!isOn)
         return false;

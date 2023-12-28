@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <functional>
 #include "./ethernet.h"
 

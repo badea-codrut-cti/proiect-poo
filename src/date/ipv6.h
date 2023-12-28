@@ -35,8 +35,8 @@ class IPv6Address : public Address<IPV6_SIZE> {
 class SubnetAddressV6 : public SubnetAddress<IPV6_SIZE, IPv6Address> {
     public:
         SubnetAddressV6();
-        explicit SubnetAddressV6(IPv6Address);
-        SubnetAddressV6(IPv6Address, uint8_t);
+        explicit SubnetAddressV6(const IPv6Address&);
+        SubnetAddressV6(const IPv6Address&, uint8_t);
 
         [[nodiscard]] std::string toString() const;
 };

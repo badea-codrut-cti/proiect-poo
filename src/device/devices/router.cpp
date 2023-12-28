@@ -2,6 +2,7 @@
 #include "../../date/osi/network.h"
 #include <memory>
 #include "../../protocoale/icmp.h"
+#include <stdexcept>
 #include <typeinfo>
 
 Router::Router(): Device(ROUTER_INT_COUNT, false, DEFAULT_ROUTER_HOSTNAME) {
@@ -137,11 +138,17 @@ bool Router::interfaceCallback(const DataLinkLayer& data, [[maybe_unused]] uint8
 }   
 
 bool Router::addStaticRoute(const SubnetAddressV4& subnet, const IPv4Address& ip) {
+    if (subnet.getNetworkAddress() != subnet)
+        throw std::invalid_argument("Route should point to the network address.");
+
     routes.insert(std::make_pair(subnet, ip));
     return true;
 }
 
 bool Router::addStaticRoute(const SubnetAddressV6& subnet, const IPv6Address& ip) {
+    if (ip.isLinkLocalAddress() || ip.isLoopbackAddress() || ip.isMulticastAddress())
+        throw std::invalid_argument("Route should point to a global unicast address.");
+
     routesV6.insert(std::make_pair(subnet, ip));
     return true;
 }

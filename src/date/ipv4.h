@@ -21,6 +21,8 @@ class IPv4Address : public Address<IPV4_SIZE> {
         explicit IPv4Address(const std::string&);
 
         IPv4Address& operator=(const IPv4Address&);
+        [[nodiscard]] bool isLoopbackAddress() const;
+        [[nodiscard]] bool isMulticastAddress() const;
 
         [[nodiscard]] std::string toString() const;
 };
@@ -35,10 +37,6 @@ class SubnetAddressV4 : public SubnetAddress<IPV4_SIZE, IPv4Address> {
         SubnetAddressV4(const IPv4Address&, uint8_t);
 
         [[nodiscard]] std::string toString() const;
-
-        [[nodiscard]] bool isLoopbackAddress() const;
-        [[nodiscard]] bool isMulticastAddress() const;
-
         [[nodiscard]] IPv4Address getMaskDotNotation() const;
 };
 
