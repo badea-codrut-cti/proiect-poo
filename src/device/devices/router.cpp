@@ -152,3 +152,19 @@ bool Router::addStaticRoute(const SubnetAddressV6& subnet, const IPv6Address& ip
     routesV6.insert(std::make_pair(subnet, ip));
     return true;
 }
+
+bool Router::sendICMPRequest(const IPv4Address& target) {
+    IPv4Address dest = findRoute(target);
+
+    if (dest == IPv4Address("127.0.0.1"))
+        return false;
+
+    EthernetInterface& sender = adapter[adapter.findInSubnet(dest)];
+
+    ICMPPayload pl(ICMPPayload::ECHO_REQUEST, 0);
+
+    DataLinkLayer l2(sender.getMacAddress(), getArpEntryOrBroadcast(dest), pl, DataLinkLayer::IPV4);
+
+    NetworkLayerV4 l3(l2, sender.getIPv4Address(), target, DEFAULT_TTL, NetworkLayerV4::ICMP);
+    return sender.sendData(l3);
+}

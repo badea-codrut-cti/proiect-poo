@@ -58,6 +58,8 @@ class Device {
 
         virtual bool sendNDPRequest(const IPv6Address&, bool);
 
+        virtual bool sendICMPRequest(const IPv4Address&);
+
         [[nodiscard]] virtual Device* clone() const;
 
         [[nodiscard]] bool getState() const;
@@ -72,7 +74,9 @@ class Device {
 
         friend std::ostream& operator<<(std::ostream&, const Device&);
 
-        unsigned long long registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)>&);
+        size_t registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)>&);
+
+        bool removeFuncListener(size_t);
 };
 
 #endif

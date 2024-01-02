@@ -87,6 +87,25 @@ bool Device::sendNDPRequest(const IPv6Address& target, bool forced) {
     return false;
 }
 
+bool Device::sendICMPRequest(const IPv4Address& dest) {
+    ICMPPayload pl(ICMPPayload::ECHO_REQUEST, 0);
+
+    bool hitRouter = !adapter[0].getIPv4Address().isInSameSubnet(dest);
+    IPv4Address defaultGatewayV4 = adapter[0].getIPv4DefaultGateway();
+
+    if (hitRouter) 
+        sendARPRequest(defaultGatewayV4, false);
+    else 
+        sendARPRequest(dest, false);
+
+    DataLinkLayer l2(adapter[0].getMacAddress(),
+    hitRouter ? getArpEntryOrBroadcast(defaultGatewayV4) : getArpEntryOrBroadcast(dest), 
+    pl, DataLinkLayer::IPV4);
+
+    NetworkLayerV4 l3(l2, adapter[0].getIPv4Address(), dest, DEFAULT_TTL, NetworkLayerV4::ICMP);
+    return adapter[0].sendData(l3);
+}
+
 void Device::turnOn() {
     isOn = true;
 }
@@ -286,9 +305,17 @@ Device* Device::clone() const {
     return new Device(*this);
 }
 
-unsigned long long Device::registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)> &func) {
+size_t Device::registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)> &func) {
     listeners.push_back(func);
     return listeners.size()-1;
+}
+
+bool Device::removeFuncListener(size_t index) {
+    if (index >= listeners.size())
+        throw std::out_of_range("Index out of listeners range.");
+
+    listeners.erase(listeners.begin() + index);
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& os, const Device& device) {

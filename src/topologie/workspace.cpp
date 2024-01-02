@@ -7,6 +7,7 @@
 #include "device_factory.h"
 #include <cstdint>
 #include <stdexcept>
+#include <typeinfo>
 
 using json = nlohmann::json;
 
@@ -190,9 +191,12 @@ bool Workspace::changeDeviceSettings(uint64_t index, json data) {
     } else throw UIParameterException("editMode");
 }
 
-bool Workspace::handleDeviceAction(uint64_t index, json data) {
+json Workspace::handleDeviceAction(uint64_t index, json data) {
     if (devices.size() <= index)
         throw UIException("Index out of range in hook function.");
+
+    if (data["action"].empty())
+        throw UIParameterException("action");
 
     Device* dev = devices[index];
 
@@ -202,7 +206,38 @@ bool Workspace::handleDeviceAction(uint64_t index, json data) {
     if (!dev->getState())
         throw UIStateException(*dev);
 
-    
+    std::string action = data["action"];
+
+    json retObj = json::object();
+
+    if (action == "ping") {
+        size_t callbackIndex;
+
+        auto callbackPingReply = [&retObj, &callbackIndex, dev](const DataLinkLayer& l2, const MACAddress& mac) {
+            if (l2.getL2Type() != DataLinkLayer::IPV4)
+                return false;
+
+            try {
+                auto& l3 = dynamic_cast<const NetworkLayerV4&>(l2);
+                if (l3.getL3Protocol() != NetworkLayerV4::ICMP)
+                    return false;
+                
+                retObj = frameToJson(l2);
+                dev->removeFuncListener(callbackIndex);
+
+                return true;
+            } catch(const std::bad_cast&) {
+                return false;
+            }
+            return false;
+        };
+
+        callbackIndex = dev->registerFuncListener(callbackPingReply);
+
+        dev->sendICMPRequest(IPv4Address(data["destination"].get<std::string>()));
+    }
+
+    return retObj;
 }
 
 Workspace& Workspace::getWorkspace() {

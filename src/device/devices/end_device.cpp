@@ -49,25 +49,6 @@ bool EndDevice::sendData(L2Payload& data, const IPv4Address& target) {
     return adapter[0].sendData(l3);
 }
 
-bool EndDevice::sendPing(const IPv4Address& dest) {
-    ICMPPayload pl(ICMPPayload::ECHO_REQUEST, 0);
-
-    bool hitRouter = !getIPv4Address().isInSameSubnet(dest);
-    IPv4Address defaultGatewayV4 = adapter[0].getIPv4DefaultGateway();
-
-    if (hitRouter) 
-        sendARPRequest(defaultGatewayV4, false);
-    else 
-        sendARPRequest(dest, false);
-
-    DataLinkLayer l2(adapter[0].getMacAddress(),
-    hitRouter ? getArpEntryOrBroadcast(defaultGatewayV4) : getArpEntryOrBroadcast(dest), 
-    pl, DataLinkLayer::IPV4);
-
-    NetworkLayerV4 l3(l2, getIPv4Address(), dest, DEFAULT_TTL, NetworkLayerV4::ICMP);
-    return adapter[0].sendData(l3);
-}
-
 SubnetAddressV4 EndDevice::getIPv4Address() const {
     return adapter[0].getIPv4Address();
 }

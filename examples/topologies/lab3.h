@@ -56,5 +56,5 @@ void lab3() {
 
     bon.registerFuncListener(onICMPReceive);
 
-    bon.sendPing(brasov.getIPv4Address());
+    bon.sendICMPRequest(brasov.getIPv4Address());
 }

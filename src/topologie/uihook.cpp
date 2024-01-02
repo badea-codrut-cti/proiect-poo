@@ -132,13 +132,14 @@ void UIWindow::hookSettingsWindow(uint64_t index) {
         }
     };
 
-    auto deviceActionCallback = [&alter_window, index](const std::string& act) {
+    auto deviceActionCallback = [index](const std::string& act) {
         try {
             json obj = json::parse(act);
-            Workspace::getWorkspace().changeDeviceSettings(index, obj[0]);
-            //std::cout << deviceToJson(Workspace::getWorkspace().getDevice(index));
-            alter_window.eval("window.wDeviceUpdateListener()");
-            return std::string("{success: true}");
+            json out = Workspace::getWorkspace().handleDeviceAction(index, obj);
+            json ret = json::object();
+            ret["success"] = true;
+            ret["result"] = out;
+            return std::string(ret.dump());
         } catch (const UIParameterException& e) {
             json ret = json::object();
             ret["success"] = false;
@@ -153,6 +154,7 @@ void UIWindow::hookSettingsWindow(uint64_t index) {
 
     alter_window.bind("wGetDeviceData", deviceDataCallback);
     alter_window.bind("wChangeDeviceSettings", deviceUpdateCallback);
+    alter_window.bind("wPerformDeviceAction", deviceActionCallback);
 
     alter_window.run();
     alter_window.terminate();

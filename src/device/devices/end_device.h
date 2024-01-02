@@ -16,7 +16,6 @@ class EndDevice : public Device {
         bool setIPv4Address(const SubnetAddressV4&);
 
         bool sendData(L2Payload&, const IPv4Address& = IPv4Address("127.0.0.1"));
-        bool sendPing(const IPv4Address&);
 
         explicit operator EthernetInterface&();
 

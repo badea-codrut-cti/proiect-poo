@@ -18,6 +18,8 @@ class Router: public Device {
     public:
         Router();
 
+        bool sendICMPRequest(const IPv4Address&) override;
+
         bool interfaceCallback(const DataLinkLayer&, uint8_t) override;
 
         bool addStaticRoute(const SubnetAddressV4&, const IPv4Address&);

@@ -77,7 +77,7 @@ size_t NetworkAdapter::getIntefaceIndex(const IPv6Address& other) const {
             if (interfaces[i]->getLinkLocalAddress() == other)
                 return i;
         } else {
-            for (auto& gua : interfaces[i]->getGlobalUnicastAddresses())
+            for (const auto& gua : interfaces[i]->getGlobalUnicastAddresses())
                 if (other == gua)
                     return i;
         }
@@ -100,7 +100,7 @@ size_t NetworkAdapter::findInSubnet(const IPv6Address& other) const {
             if (interfaces[i]->getLinkLocalAddress() == other)
                 return i;
         } else {
-            for (auto& gua : interfaces[i]->getGlobalUnicastAddresses())
+            for (const auto& gua : interfaces[i]->getGlobalUnicastAddresses())
                 if (gua.isInSameSubnet(other))
                     return i;
         }
@@ -116,7 +116,7 @@ bool NetworkAdapter::hasInterfaceInSubnet(const IPv6Address& other) const {
             if (interfaces[i]->getLinkLocalAddress() == other)
                 return true;
         } else {
-            for (auto& gua : interfaces[i]->getGlobalUnicastAddresses())
+            for (const auto& gua : interfaces[i]->getGlobalUnicastAddresses())
                 if (gua.isInSameSubnet(other))
                     return true;
         }
