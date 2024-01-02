@@ -12,7 +12,7 @@ json deviceToJson(const Device* pDevice) {
     outDevice["hostname"] = pDevice->getHostname();
 
     outDevice["interfaces"] = json::array();
-    for (uint8_t i = 0; i < pDevice->getNetworkAdapter().interfaceCount(); i++) {
+    for (size_t i = 0; i < pDevice->getNetworkAdapter().interfaceCount(); i++) {
         const EthernetInterface& ether = pDevice->getNetworkAdapter()[i];
         json interface = json::object();
         interface["isOn"] = ether.getState();

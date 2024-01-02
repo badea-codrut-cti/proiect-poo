@@ -58,7 +58,29 @@ void test_ipv4() {
 void test_ipv6() {
     IPv6Address add1("FE80::1");
 
-    assert(add1.getOctets()[0] == 0xFE && add1.getOctets()[IPV6_SIZE-1] == 0x01);
+    assert(
+        add1.getOctets()[0] == 0xFE && 
+        add1.getOctets()[1] == 0x80 &&
+        add1.getOctets()[IPV6_SIZE-1] == 0x01);
+
+    for (uint8_t i = 2; i < IPV6_SIZE-1; i++)
+        assert(add1.getOctets()[i] == 0);
+
+    assert(add1.toString() == "FE80::1");
+
+    IPv6Address add2("AA:1::");
+
+    assert(
+        add2.getOctets()[0] == 0x00 &&
+        add2.getOctets()[1] == 0xAA &&
+        add2.getOctets()[2] == 0x00 && 
+        add2.getOctets()[3] == 0x01
+    );
+    
+    for (uint8_t i = 4; i < IPV6_SIZE; i++)
+        assert(add2.getOctets()[i] == 0);
+
+    assert(add2.toString() == "AA:1::");
 
     try {
         IPv6Address iptest("FE80::1::2");

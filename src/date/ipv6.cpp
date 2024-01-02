@@ -78,15 +78,15 @@ std::string IPv6Address::toString() const {
             continue;
         }
         uint16_t part = (octets[i] << 8) | octets[i+1];
-        oss << std::hex << part;
+        oss << std::hex << std::uppercase << part;
         if (i < IPV6_SIZE-2 && !(i == maxZerosStart - 2 && maxZerosLen > 0)) {
             oss << ":";
         }
     }
 
     std::string result = oss.str();
-    if (result.back() == ':') {
-        result.pop_back();
+    if (result.back() == ':' && result[result.length()-2] != ':') {
+        result += ":";
     }
 
     return result;

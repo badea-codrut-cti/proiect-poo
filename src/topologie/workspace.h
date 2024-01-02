@@ -27,6 +27,8 @@ class Workspace {
         bool WToggleDeviceState(nlohmann::json);
 
         bool changeDeviceSettings(uint64_t, nlohmann::json);
+
+        bool handleDeviceAction(uint64_t, nlohmann::json);
         
         static Workspace& getWorkspace();
 };

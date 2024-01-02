@@ -32,5 +32,5 @@ void lab9() {
 
     liberia.getNetworkAdapter()[0].connect(&sw_liberia.getNetworkAdapter()[0]);
 
-    sw_liberia.getNetworkAdapter()[0].connect(&r_liberia.getNetworkAdapter()[0]);
+    sw_liberia.getNetworkAdapter()[1].connect(&r_liberia.getNetworkAdapter()[0]);
 }

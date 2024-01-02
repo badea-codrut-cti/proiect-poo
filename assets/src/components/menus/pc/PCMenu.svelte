@@ -44,7 +44,7 @@
         <IpConfig interfaces={device.interfaces}/>
     {/if}
     {#if currentApp == AppType.CMD}
-        <Cmd/>
+        <Cmd dev={device}/>
     {/if}
 </div>
 
