@@ -19,10 +19,16 @@ type devSettingMode = {
     macAddress?: string
 }
 
+type devAction = {
+    action: "ping" | "pingv6",
+    destination: string
+}
+
 declare global {
     interface Window {
         wGetDeviceData: () => Promise<Device>,
         wChangeDeviceSettings: (dev: devSettingMode) => Promise<{success: boolean}>,
-        wDeviceUpdateListener: () => void
+        wDeviceUpdateListener: () => void,
+        wPerformDeviceAction: (devAction) => Promise<{success: boolean, result: any}>
     }
 }

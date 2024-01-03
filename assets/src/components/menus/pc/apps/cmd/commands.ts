@@ -6,7 +6,7 @@ export class IPConfig extends Command {
         super("ipconfig");
     }
 
-    handleCommand(argv: string[], dev: Device) {
+    async handleCommand(argv: string[], dev: Device, ) {
         return dev.interfaces.filter(intf => !intf.isUnnumbered).map(intf => {
             return `
             Link-local IPv6 Address.........: ${intf.ipv6.linkLocalAddress} 
@@ -16,5 +16,20 @@ export class IPConfig extends Command {
             Default Gateway.................: ${intf.ipv6.defaultGateway}
             ${intf.ip.defaultGateway}`;
         }).join("\n");
+    }
+}
+
+export class Ping extends Command {
+    constructor() {
+        super("ping");
+    }
+
+    async handleCommand(argv: string[], dev: Device) {
+        let res = await window.wPerformDeviceAction({
+            action: "ping",
+            destination: argv[1]
+        });
+
+        return JSON.stringify(res);
     }
 }

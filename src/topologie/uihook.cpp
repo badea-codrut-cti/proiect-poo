@@ -135,7 +135,7 @@ void UIWindow::hookSettingsWindow(uint64_t index) {
     auto deviceActionCallback = [index](const std::string& act) {
         try {
             json obj = json::parse(act);
-            json out = Workspace::getWorkspace().handleDeviceAction(index, obj);
+            json out = Workspace::getWorkspace().handleDeviceAction(index, obj[0]);
             json ret = json::object();
             ret["success"] = true;
             ret["result"] = out;

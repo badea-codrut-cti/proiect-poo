@@ -1,18 +1,36 @@
 <script lang="ts">
-    import type { FormEventHandler } from "svelte/elements";
     import type { Device } from "../../../../lib/types/device";
-    import { IPConfig } from "./cmd/commands";
+    import { IPConfig, Ping } from "./cmd/commands";
 
     export let dev: Device;
 
     let tInput: any, tOutput: any;
 
+    const commands = [new IPConfig(), new Ping()];
+
+    async function handleCommandInput() {
+        let params = `${tInput.value}`.substring(0, `${tInput.value}`.length-1).split(" ");
+
+        let cmds = commands.filter(command => command.name.startsWith(params[0]));
+
+        if (cmds.length == 0)
+            tOutput.innerText += "Command does not exist.\n";
+
+        if (cmds.length > 1)
+            tOutput.innerText += "Command is ambiguous.\n";
+
+        tOutput.innerText += await cmds[0].handleCommand(params, dev);
+    }
+
     function handleTerminalInput() {
         if (tInput.value[tInput.value.length-1] != '\n')
             return;
+        
+        handleCommandInput();
 
-        tOutput.innerText += new IPConfig().handleCommand([], dev);
+        tInput.value = "";
     }
+
 </script>
 
 <div class="terminal-window">

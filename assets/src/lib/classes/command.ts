@@ -11,7 +11,7 @@ export class Command {
         return this.#name;
     }
 
-    handleCommand(argv: string[], dev: Device) {
+    async handleCommand(argv: string[], dev: Device) {
         return "";
     }
 }
