@@ -6,8 +6,8 @@ void arp() {
     EndDevice a, b;
     a.connect(&(EthernetInterface&)b);
 
-    a.setIpAddress(SubnetAddress(IPv4Address("192.168.1.2"), 24));
-    b.setIpAddress(SubnetAddress(IPv4Address("192.168.1.3"), 24));
+    a.setIPv4Address(SubnetAddressV4(IPv4Address("192.168.1.2"), 24));
+    b.setIPv4Address(SubnetAddressV4(IPv4Address("192.168.1.3"), 24));
 
     b.turnOff();
     a.sendARPRequest(IPv4Address("192.168.1.3"), false);
@@ -18,7 +18,7 @@ void arp() {
     a.sendARPRequest(IPv4Address("192.168.1.3"), false);
 
     for (const auto& entry : a.getARPCache()) {
-        assert(entry.first == "192.168.1.3");
+        assert(entry.first == IPv4Address("192.168.1.3"));
     }   
 
     try {
@@ -35,7 +35,7 @@ void clone() {
     a.setDefaultGateway(IPv4Address("192.168.1.1"));
 
     auto* b = dynamic_cast<EndDevice*>(a.clone());
-    assert(b->getDefaultGateway() == a.getDefaultGateway()); 
+    assert(b->getIPv4DefaultGateway() == a.getIPv4DefaultGateway()); 
     assert(b->getHostname() == a.getHostname());
     delete b;
 }

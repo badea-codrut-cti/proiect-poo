@@ -5,69 +5,56 @@
 EndDevice::EndDevice(): Device() {}
 
 EndDevice::EndDevice(const EndDevice& other):
-Device(other), defaultGateway(other.defaultGateway) {
+Device(other) {
 
 }
 
-bool EndDevice::setIpAddress(const SubnetAddress& add) {
+bool EndDevice::setIPv4Address(const SubnetAddressV4& add) {
     return adapter[0].setIpAddress(add);
+}
+
+bool EndDevice::setDefaultGateway(const IPv4Address& addr) {
+    return adapter[0].setDefaultGateway(addr);
+}
+
+bool EndDevice::setDefaultGateway(const IPv6Address& addr) {
+    return adapter[0].setDefaultGateway(addr);
 }
 
 bool EndDevice::connect(EthernetInterface* _int) {
     return adapter[0].connect(_int);
 } 
 
-bool EndDevice::setDefaultGateway(const IPv4Address& gatewayAddress) {
-    defaultGateway = gatewayAddress;
-    return true;
-}
-
 bool EndDevice::sendData(L2Payload& data, const IPv4Address& target) {
-    if(adapter[0].getAddress().isLoopbackAddress())
+    if(getIPv4Address().isLoopbackAddress())
         return false;
 
-    if (adapter[0].getAddress().getNetworkAddress() == target)
+    if (getIPv4Address().getNetworkAddress() == target)
         throw InvalidPacketException(target);
 
-    bool hitRouter = !getAddress().isInSameSubnet(target);
+    bool hitRouter = !getIPv4Address().isInSameSubnet(target);
+
+    IPv4Address defaultGatewayV4 = adapter[0].getIPv4DefaultGateway();
 
     if (hitRouter) 
-        sendARPRequest(defaultGateway, false);
+        sendARPRequest(defaultGatewayV4, false);
     else 
         sendARPRequest(target, false);
 
     DataLinkLayer l2(adapter[0].getMacAddress(), 
-    hitRouter ? getArpEntryOrBroadcast(defaultGateway) : getArpEntryOrBroadcast(target),
+    hitRouter ? getArpEntryOrBroadcast(defaultGatewayV4) : getArpEntryOrBroadcast(target),
      data, DataLinkLayer::IPV4);
-    NetworkLayer l3(l2, getAddress(), target);
+    NetworkLayerV4 l3(l2, getIPv4Address(), target);
 
     return adapter[0].sendData(l3);
 }
 
-bool EndDevice::sendPing(const IPv4Address& dest) {
-    ICMPPayload pl(ICMPPayload::ECHO_REQUEST, 0);
-
-    bool hitRouter = !getAddress().isInSameSubnet(dest);
-
-    if (hitRouter) 
-        sendARPRequest(defaultGateway, false);
-    else 
-        sendARPRequest(dest, false);
-
-    DataLinkLayer l2(adapter[0].getMacAddress(),
-    hitRouter ? getArpEntryOrBroadcast(defaultGateway) : getArpEntryOrBroadcast(dest), 
-    pl, DataLinkLayer::IPV4);
-
-    NetworkLayer l3(l2, getAddress(), dest, DEFAULT_TTL, NetworkLayer::ICMP);
-    return adapter[0].sendData(l3);
+SubnetAddressV4 EndDevice::getIPv4Address() const {
+    return adapter[0].getIPv4Address();
 }
 
-SubnetAddress EndDevice::getAddress() const {
-    return adapter[0].getAddress();
-}
-
-IPv4Address EndDevice::getDefaultGateway() const {
-    return defaultGateway;
+IPv4Address EndDevice::getIPv4DefaultGateway() const {
+    return adapter[0].getIPv4DefaultGateway();
 }
 
 EndDevice::operator EthernetInterface&() {

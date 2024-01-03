@@ -3,17 +3,17 @@
 #include <stdexcept>
 #include <iostream>
 
-NetworkAdapter::NetworkAdapter(Device& device, uint8_t intCount, bool passive): 
+NetworkAdapter::NetworkAdapter(Device& device, size_t intCount, bool passive): 
 numInterfaces(intCount) {
     interfaces = new EthernetInterface*[intCount];
-    for (uint8_t i=0;i < numInterfaces; i++)
+    for (size_t i=0;i < numInterfaces; i++)
         interfaces[i] = new EthernetInterface(device, GIGABIT_ETHERNET, passive);
 }
 
-NetworkAdapter::NetworkAdapter(Device& device, uint8_t intCount, std::function<EthernetInterface*(Device&, uint8_t)> func):
+NetworkAdapter::NetworkAdapter(Device& device, size_t intCount, std::function<EthernetInterface*(Device&, size_t)> func):
 numInterfaces(intCount) {
     interfaces = new EthernetInterface*[intCount];
-    for (uint8_t i=0;i < numInterfaces; i++)
+    for (size_t i=0;i < numInterfaces; i++)
         interfaces[i] = func(device, i);
 }
 
@@ -21,7 +21,7 @@ bool NetworkAdapter::copy(Device& dev, const NetworkAdapter& other) {
     if (this == &other) {
         // Self assignment would return in making everything a nullptr
         // I have no idea when we will need to swap the card owner to another device
-        for (uint8_t i = 0; i < numInterfaces; i++) {
+        for (size_t i = 0; i < numInterfaces; i++) {
             EthernetInterface* interface = interfaces[i]->copy(dev);
             delete interfaces[i];
             interfaces[i] = interface;
@@ -29,7 +29,7 @@ bool NetworkAdapter::copy(Device& dev, const NetworkAdapter& other) {
         return true;
     }
 
-    for (uint8_t i = 0; i < numInterfaces; i++)
+    for (size_t i = 0; i < numInterfaces; i++)
         delete interfaces[i];
 
     delete[] interfaces;
@@ -37,7 +37,7 @@ bool NetworkAdapter::copy(Device& dev, const NetworkAdapter& other) {
     numInterfaces = other.numInterfaces;
     interfaces = new EthernetInterface*[numInterfaces];
 
-    for (uint8_t i = 0; i < numInterfaces; i++) {
+    for (size_t i = 0; i < numInterfaces; i++) {
         interfaces[i] = other.interfaces[i]->copy(dev);
     }
 
@@ -45,60 +45,109 @@ bool NetworkAdapter::copy(Device& dev, const NetworkAdapter& other) {
 }
 
 NetworkAdapter::~NetworkAdapter() {
-    for (uint8_t i=0;i < numInterfaces; i++)
+    for (size_t i=0;i < numInterfaces; i++)
         delete interfaces[i];
     
     delete[] interfaces;
 }
 
-uint8_t NetworkAdapter::interfaceCount() const {
+size_t NetworkAdapter::interfaceCount() const {
     return numInterfaces;
 }
 
-uint8_t NetworkAdapter::getIntefaceIndex(const MACAddress& mac) const {
-    for (uint8_t i = 0; i < numInterfaces; i++)
+size_t NetworkAdapter::getIntefaceIndex(const MACAddress& mac) const {
+    for (size_t i = 0; i < numInterfaces; i++)
         if (interfaces[i]->getMacAddress() == mac)
             return i;
     throw std::out_of_range("Index out of range");
 }
 
-uint8_t NetworkAdapter::getIntefaceIndex(const IPv4Address& other) const {
-    for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress() == other)
+size_t NetworkAdapter::getIntefaceIndex(const IPv4Address& other) const {
+    for (size_t i = 0; i < numInterfaces; i++)
+        if (interfaces[i]->getIPv4Address() == other)
             return i;
     throw std::out_of_range("Index out of range");
 }
 
-uint8_t NetworkAdapter::findInSubnet(const IPv4Address& other) const {
-    for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress().isInSameSubnet(other))
+size_t NetworkAdapter::getIntefaceIndex(const IPv6Address& other) const {
+    bool isLinkLocal = other.isLinkLocalAddress();
+
+    for (size_t i = 0; i < numInterfaces; i++) {
+        if (isLinkLocal) {
+            if (interfaces[i]->getLinkLocalAddress() == other)
+                return i;
+        } else {
+            for (const auto& gua : interfaces[i]->getGlobalUnicastAddresses())
+                if (other == gua)
+                    return i;
+        }
+    }
+    throw std::out_of_range("Index out of range");
+}
+
+size_t NetworkAdapter::findInSubnet(const IPv4Address& other) const {
+    for (size_t i = 0; i < numInterfaces; i++)
+        if (interfaces[i]->getIPv4Address().isInSameSubnet(other))
             return i;
     throw std::out_of_range("Index out of range");
+}
+
+size_t NetworkAdapter::findInSubnet(const IPv6Address& other) const {
+    bool isLinkLocal = other.isLinkLocalAddress();
+
+    for (size_t i = 0; i < numInterfaces; i++) {
+        if (isLinkLocal) {
+            if (interfaces[i]->getLinkLocalAddress() == other)
+                return i;
+        } else {
+            for (const auto& gua : interfaces[i]->getGlobalUnicastAddresses())
+                if (gua.isInSameSubnet(other))
+                    return i;
+        }
+    }
+    throw std::out_of_range("Index out of range");
+}
+
+bool NetworkAdapter::hasInterfaceInSubnet(const IPv6Address& other) const {
+    bool isLinkLocal = other.isLinkLocalAddress();
+
+    for (size_t i = 0; i < numInterfaces; i++) {
+        if (isLinkLocal) {
+            if (interfaces[i]->getLinkLocalAddress() == other)
+                return true;
+        } else {
+            for (const auto& gua : interfaces[i]->getGlobalUnicastAddresses())
+                if (gua.isInSameSubnet(other))
+                    return true;
+        }
+    }
+
+    return false;
 }
 
 bool NetworkAdapter::hasInterface(const MACAddress& other) const {
-    for (uint8_t i = 0; i < numInterfaces; i++)
+    for (size_t i = 0; i < numInterfaces; i++)
         if (interfaces[i]->getMacAddress() == other)
             return true;
     return false;
 }
 
 bool NetworkAdapter::hasInterface(const IPv4Address& other) const {
-    for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress() == other)
+    for (size_t i = 0; i < numInterfaces; i++)
+        if (interfaces[i]->getIPv4Address() == other)
             return true;
     return false;
 }
 
 bool NetworkAdapter::hasInterfaceInSubnet(const IPv4Address& other) const {
-    for (uint8_t i = 0; i < numInterfaces; i++)
-        if (interfaces[i]->getAddress().isInSameSubnet(other))
+    for (size_t i = 0; i < numInterfaces; i++)
+        if (interfaces[i]->getIPv4Address().isInSameSubnet(other))
             return true;
 
     return false;
 }
 
-EthernetInterface& NetworkAdapter::operator[](uint8_t index) const {
+EthernetInterface& NetworkAdapter::operator[](size_t index) const {
     if (index >= numInterfaces) {
         throw std::out_of_range("Index out of range");
     }
@@ -106,8 +155,8 @@ EthernetInterface& NetworkAdapter::operator[](uint8_t index) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const NetworkAdapter& adapter) {
-    uint8_t lastChange = 0;
-    for (uint8_t i=0; i<adapter.interfaceCount();i++) {
+    size_t lastChange = 0;
+    for (size_t i=0; i<adapter.interfaceCount();i++) {
         os << "interface ";
         if (adapter[i].getMaxSpeed() >= 1000)
             os << "Gigabit";

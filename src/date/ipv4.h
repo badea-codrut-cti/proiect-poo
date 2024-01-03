@@ -1,15 +1,18 @@
 #include <array>
 #include <string>
 
+#pragma once
+
 #ifndef IPV4_H
 #define IPV4_H
 
+#include "subnetaddress.h"
+
 const uint8_t IPV4_SIZE = 4;
 
-class IPv4Address {
+class IPv4Address : public Address<IPV4_SIZE> {
     protected:
-        std::array<uint8_t, IPV4_SIZE> octets;
-        void stringToOctets(const std::string&);
+        static std::array<uint8_t, IPV4_SIZE> stringToOctets(const std::string&);
 
     public:
         IPv4Address();
@@ -17,17 +20,26 @@ class IPv4Address {
         explicit IPv4Address(const std::array<uint8_t, IPV4_SIZE>&);
         explicit IPv4Address(const std::string&);
 
-        [[nodiscard]] std::string toString() const;
-        [[nodiscard]] std::array<uint8_t, IPV4_SIZE> getOctets() const;
-
-        IPv4Address& operator=(const std::string&);
         IPv4Address& operator=(const IPv4Address&);
-        bool operator==(const IPv4Address&) const;
-        bool operator==(const std::string&) const;
-        bool operator<(const IPv4Address&) const;
-        bool operator>=(const IPv4Address&) const;
-        
-        friend std::ostream& operator<<(std::ostream&, const IPv4Address&);
+        [[nodiscard]] bool isLoopbackAddress() const;
+        [[nodiscard]] bool isMulticastAddress() const;
+
+        [[nodiscard]] std::string toString() const;
 };
 
+class SubnetAddressV4 : public SubnetAddress<IPV4_SIZE, IPv4Address> {
+    public:
+        static uint8_t getClassSubnetMask(const IPv4Address&);
+        static uint8_t dotMaskToCIDR(const IPv4Address&);
+
+        SubnetAddressV4();
+        explicit SubnetAddressV4(const IPv4Address&);
+        SubnetAddressV4(const IPv4Address&, uint8_t);
+
+        [[nodiscard]] std::string toString() const;
+        [[nodiscard]] IPv4Address getMaskDotNotation() const;
+};
+
+std::ostream& operator<<(std::ostream&, const IPv4Address&);
+std::ostream& operator<<(std::ostream&, const SubnetAddressV4&);
 #endif

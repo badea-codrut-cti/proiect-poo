@@ -12,7 +12,7 @@ json deviceToJson(const Device* pDevice) {
     outDevice["hostname"] = pDevice->getHostname();
 
     outDevice["interfaces"] = json::array();
-    for (uint8_t i = 0; i < pDevice->getNetworkAdapter().interfaceCount(); i++) {
+    for (size_t i = 0; i < pDevice->getNetworkAdapter().interfaceCount(); i++) {
         const EthernetInterface& ether = pDevice->getNetworkAdapter()[i];
         json interface = json::object();
         interface["isOn"] = ether.getState();
@@ -23,10 +23,25 @@ json deviceToJson(const Device* pDevice) {
         interface["hardwareAddress"] = ether.getBurntInAddress().toString();
         if (!ether.isUnnumbered()) {
             interface["ip"] = json::object();
-            interface["ip"]["address"] = static_cast<const IPv4Address&>(ether.getAddress()).toString();
+            interface["ip"]["address"] = static_cast<const IPv4Address&>(ether.getIPv4Address()).toString();
             interface["ip"]["subnetMask"] = json::object();
-            interface["ip"]["subnetMask"]["dotNotation"] = ether.getAddress().getMaskDotNotation().toString();
-            interface["ip"]["subnetMask"]["slashNotation"] = ether.getAddress().getMaskSlashNotation();
+            interface["ip"]["subnetMask"]["dotNotation"] = ether.getIPv4Address().getMaskDotNotation().toString();
+            interface["ip"]["subnetMask"]["slashNotation"] = ether.getIPv4Address().getSubnetMask();
+
+            interface["ip"]["defaultGateway"] = ether.getIPv4DefaultGateway().toString();
+
+            interface["ipv6"] = json::object();
+            interface["ipv6"]["gua"] = json::array();
+
+            for (auto& gua : ether.getGlobalUnicastAddresses()) {
+                json outGua = json::object();
+                outGua["address"] = IPv6Address(gua.getOctets()).toString();
+                outGua["prefix"] = gua.getSubnetMask();
+                interface["ipv6"]["gua"].push_back(outGua);
+            }
+
+            interface["ipv6"]["defaultGateway"] = ether.getIPv6DefaultGateway().toString();
+            interface["ipv6"]["linkLocalAddress"] = ether.getLinkLocalAddress().toString();
         }
         outDevice["interfaces"][i] = interface;
     }
@@ -52,7 +67,7 @@ json frameToJson(const DataLinkLayer& data) {
         return ret;
 
     try {
-        auto& packet = dynamic_cast<const NetworkLayer&>(data);
+        auto& packet = dynamic_cast<const NetworkLayerV4&>(data);
         ret["ipSource"] = packet.getIPSource().toString();
         ret["ipDestination"] = packet.getIPDestination().toString();
         ret["TTL"] = packet.getTTL();
@@ -63,7 +78,7 @@ json frameToJson(const DataLinkLayer& data) {
 
         ret["data"] = json::object();
         switch (packet.getL3Protocol()) {
-            case NetworkLayer::ICMP: {
+            case NetworkLayerV4::ICMP: {
                 try {
                     auto icmp = dynamic_cast<const ICMPPayload*>(packet.getPayload());
                     ret["data"]["type"] = icmp->getType();

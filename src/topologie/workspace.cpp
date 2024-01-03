@@ -7,6 +7,7 @@
 #include "device_factory.h"
 #include <cstdint>
 #include <stdexcept>
+#include <typeinfo>
 
 using json = nlohmann::json;
 
@@ -85,6 +86,78 @@ bool Workspace::WToggleDeviceState(json data) {
     return true;
 }
 
+
+bool handleIPSettings(EthernetInterface& intf, json data) {
+    if (!data["address"].empty()) {
+        IPv4Address newIp;
+
+        try {
+            newIp = IPv4Address(
+                data["address"].get<std::string>()
+            );
+        } catch(const std::invalid_argument&) {
+            throw UIParameterException("ipAddress");
+        }
+
+        if (!data["subnetMask"].empty()) {
+            try {
+                if (!data["subnetMask"]["slashNotation"].empty()) {
+                    intf.setIpAddress(SubnetAddressV4(newIp, data["subnetMask"]["slashNotation"]));
+                } else if (!data["subnetMask"]["dotNotation"].empty()) {
+                    std::string dotNot = data["subnetMask"]["dotNotation"];
+                    intf.setIpAddress(SubnetAddressV4(newIp,
+                        SubnetAddressV4::dotMaskToCIDR(IPv4Address(dotNot))
+                    ));
+                }
+            } catch (const std::invalid_argument&) {
+                throw UIParameterException("subnetMask");
+            }
+        } else {
+            try {
+                intf.setIpAddress(SubnetAddressV4(newIp));
+            } catch(const std::invalid_argument&) {
+                throw UIParameterException("ipAddress");
+            }
+        }
+    }
+
+    return true;
+}
+
+bool handleInterfaceSettings(EthernetInterface& intf, json data) {
+    if (!data["ip"].empty()) {
+        if (intf.isUnnumbered())
+                throw UIException("Cannot assign IP address to unnumbered interface");
+
+        handleIPSettings(intf, data["ip"]);
+    }
+
+    if (!data["isOn"].empty()) {
+        if (data["isOn"])
+            intf.turnOn();
+        else
+            intf.turnOff();
+    }
+
+    if (!data["macAddress"].empty()) {
+        try {
+            intf.setMacAddress(MACAddress(data["macAddress"].get<std::string>()));
+        } catch(const std::invalid_argument&) {
+            throw UIParameterException("macAddress");
+        }
+    }
+
+    if (!data["speed"].empty()) {
+        try {
+            intf.setSpeed(data["speed"]);
+        } catch(const std::invalid_argument&) {
+            throw UIParameterException("speed");
+        }
+    }
+
+    return true;
+}
+
 bool Workspace::changeDeviceSettings(uint64_t index, json data) {
     if (devices.size() <= index)
         throw UIException("Index out of range in hook function.");
@@ -94,7 +167,7 @@ bool Workspace::changeDeviceSettings(uint64_t index, json data) {
     if (dev == nullptr)
         throw UIException("Device was freed prior to edit.");
 
-    if (!dev->getState())
+    if (!dev->getState() && data["isOn"].empty())
         throw UIStateException(*dev);
 
     std::string editMode = data["editMode"];
@@ -112,79 +185,59 @@ bool Workspace::changeDeviceSettings(uint64_t index, json data) {
 
         EthernetInterface& interf = dev->getNetworkAdapter()[interfaceIndex];
 
-        if (!data["ip"].empty()) {
-            if (interf.isUnnumbered())
-                throw UIException("Cannot assign IP address to unnumbered interface");
-
-            if (!data["ip"]["address"].empty()) {
-                IPv4Address newIp = IPv4Address(
-                    data["ip"]["address"].get<std::string>()
-                );
-                
-                if (!data["subnetMask"].empty()) {
-                   if (!data["subnetMask"]["slashNotation"].empty()) {
-                        try {
-                            interf.setIpAddress(
-                                SubnetAddress(
-                                    newIp,
-                                    data["subnetMask"]["slashNotation"]
-                                )
-                            );
-                        } catch(const std::invalid_argument&) {
-                            throw UIParameterException("subnetMask");
-                        }
-                   }
-                   else if (!data["subnetMask"]["dotNotation"].empty()) {
-                        try {
-                            std::string dotNot = data["subnetMask"]["dotNotation"];
-                            interf.setIpAddress(
-                                SubnetAddress(
-                                    newIp,
-                                    SubnetAddress::dotMaskToCIDR(IPv4Address(dotNot))
-                                )
-                            );
-                        } catch(const std::invalid_argument&) {
-                            throw UIParameterException("subnetMask");
-                        }
-                   }
-                } else {
-                    try {
-                        interf.setIpAddress(SubnetAddress(newIp));
-                    } catch(const std::invalid_argument&) {
-                        throw UIParameterException("ipAddress");
-                    }
-                }
-
-            }
-        }
-
-        if (!data["isOn"].empty()) {
-            if (data["isOn"])
-                interf.turnOn();
-            else
-                interf.turnOff();
-        }
-
-        if (!data["macAddress"].empty()) {
-            try {
-                interf.setMacAddress(
-                    MACAddress(data["macAddress"].get<std::string>())
-                );
-            } catch(const std::invalid_argument&) {
-                throw UIParameterException("macAddress");
-            }
-        }
-
-        if (!data["speed"].empty()) {
-            try {
-                interf.setSpeed(data["speed"]);
-            } catch(const std::invalid_argument&) {
-                throw UIParameterException("speed");
-            }
-        }
+        handleInterfaceSettings(interf, data);
 
         return true;
     } else throw UIParameterException("editMode");
+}
+
+json Workspace::handleDeviceAction(uint64_t index, json data) {
+    if (devices.size() <= index)
+        throw UIException("Index out of range in hook function.");
+
+    if (data["action"].empty())
+        throw UIParameterException("action");
+
+    Device* dev = devices[index];
+
+    if (dev == nullptr)
+        throw UIException("Device was freed prior to edit.");
+
+    if (!dev->getState())
+        throw UIStateException(*dev);
+
+    std::string action = data["action"];
+
+    json retObj = json::object();
+
+    if (action == "ping") {
+        size_t callbackIndex;
+
+        auto callbackPingReply = [&retObj, &callbackIndex, dev](const DataLinkLayer& l2, const MACAddress& mac) {
+            if (l2.getL2Type() != DataLinkLayer::IPV4)
+                return false;
+
+            try {
+                auto& l3 = dynamic_cast<const NetworkLayerV4&>(l2);
+                if (l3.getL3Protocol() != NetworkLayerV4::ICMP)
+                    return false;
+                
+                retObj = frameToJson(l2);
+                dev->removeFuncListener(callbackIndex);
+
+                return true;
+            } catch(const std::bad_cast&) {
+                return false;
+            }
+            return false;
+        };
+
+        callbackIndex = dev->registerFuncListener(callbackPingReply);
+
+        dev->sendICMPRequest(IPv4Address(data["destination"].get<std::string>()));
+    }
+
+    return retObj;
 }
 
 Workspace& Workspace::getWorkspace() {

@@ -86,6 +86,10 @@ UIWindow::UIWindow() {
     window->terminate();
 }
 
+UIWindow::~UIWindow() {
+    delete window;
+}
+
 UIWindow UIWindow::instance{};
 
 UIWindow& UIWindow::getInstance() {
@@ -128,8 +132,29 @@ void UIWindow::hookSettingsWindow(uint64_t index) {
         }
     };
 
+    auto deviceActionCallback = [index](const std::string& act) {
+        try {
+            json obj = json::parse(act);
+            json out = Workspace::getWorkspace().handleDeviceAction(index, obj[0]);
+            json ret = json::object();
+            ret["success"] = true;
+            ret["result"] = out;
+            return std::string(ret.dump());
+        } catch (const UIParameterException& e) {
+            json ret = json::object();
+            ret["success"] = false;
+            ret["reason"] = e.what();
+            hookWarningWindow(e.what());
+            return std::string(ret.dump());
+        } catch(const UIException& e) {
+            std::cout << e.what();
+            exit(-1);
+        }
+    };
+
     alter_window.bind("wGetDeviceData", deviceDataCallback);
     alter_window.bind("wChangeDeviceSettings", deviceUpdateCallback);
+    alter_window.bind("wPerformDeviceAction", deviceActionCallback);
 
     alter_window.run();
     alter_window.terminate();

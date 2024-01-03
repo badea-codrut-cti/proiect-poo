@@ -15,6 +15,7 @@ const std::string DEFAULT_DEVICE_HOSTNAME = "Device";
 class Device {
     private:
         std::map<IPv4Address, MACAddress> arpCache{};
+        std::map<IPv6Address, MACAddress> ndCache{};
         std::vector<std::function<bool(const DataLinkLayer&, const MACAddress&)>> listeners{};
 
     protected:
@@ -24,13 +25,17 @@ class Device {
 
         std::string hostname;
 
-        MACAddress getArpEntryOrBroadcast(const IPv4Address&);
+        MACAddress getArpEntryOrBroadcast(const IPv4Address&) const;
+
+        MACAddress getNDPEntryOrMulticast(const IPv6Address&) const;
 
         bool checkPingRequest(const DataLinkLayer&, const MACAddress&);
 
+        virtual bool handleNDPRequest(const DataLinkLayer&, const MACAddress&);
+
         virtual bool handleARPRequest(const DataLinkLayer&, const MACAddress&);
 
-        virtual bool handlePingRequest(const NetworkLayer&, const MACAddress&);
+        virtual bool handlePingRequest(const NetworkLayerV4&, const MACAddress&);
 
         virtual bool interfaceCallback(const DataLinkLayer&, uint8_t);
 
@@ -51,6 +56,10 @@ class Device {
 
         virtual bool sendARPRequest(const IPv4Address&, bool);
 
+        virtual bool sendNDPRequest(const IPv6Address&, bool);
+
+        virtual bool sendICMPRequest(const IPv4Address&);
+
         [[nodiscard]] virtual Device* clone() const;
 
         [[nodiscard]] bool getState() const;
@@ -65,7 +74,9 @@ class Device {
 
         friend std::ostream& operator<<(std::ostream&, const Device&);
 
-        unsigned long long registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)>&);
+        size_t registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)>&);
+
+        bool removeFuncListener(size_t);
 };
 
 #endif

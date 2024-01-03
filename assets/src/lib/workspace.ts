@@ -7,7 +7,18 @@ export const pseudoDevice = {
             subnetMask: {
                 dotNotation: "255.255.255.0",
                 slashNotation: 24
-            }
+            },
+            defaultGateway: "192.168.1.1"
+        },
+        ipv6: {
+            gua: [
+                {
+                    address: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+                    prefix: 64
+                }
+            ],
+            defaultGateway: 'fe80::1',
+            linkLocalAddress: 'fe80::20c:29ff:fe9c:4091/10'
         },
         isOn: true,
         isUnnumbered: false, 

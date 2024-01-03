@@ -1,5 +1,7 @@
-#include "../date/subnetaddress.h"
+#include "../date/ipv4.h"
+#include "../date/ipv6.h"
 #include "../date/osi/datalink.h"
+#include <vector>
 
 #ifndef ETHERNET_H
 #define ETHERNET_H
@@ -17,8 +19,15 @@ class EthernetInterface {
         Device& device;
         EthernetInterface* link{nullptr};
 
-        SubnetAddress address;
+        IPv4Address defaultGatewayV4{};
+        IPv6Address defaultGatewayV6{};
+
+        SubnetAddressV4 addressV4;
+
         MACAddress macAddress;
+
+        std::vector<SubnetAddressV6> globalUnicastAddresses;
+        IPv6Address linkLocalAddress;
         const MACAddress burnAddress;
         bool isOn{true}, unnumbered;
 
@@ -42,7 +51,7 @@ class EthernetInterface {
 
         bool connect(EthernetInterface*);
 
-        bool setIpAddress(const SubnetAddress&);
+        bool setIpAddress(const SubnetAddressV4&);
 
         bool setMacAddress(const MACAddress&);
 
@@ -56,6 +65,19 @@ class EthernetInterface {
 
         bool disconnect();
 
+        bool setDefaultGateway(const IPv4Address&);
+        bool setDefaultGateway(const IPv6Address&);
+
+        bool addGlobalUnicastAddress(const SubnetAddressV6&);
+        bool removeGlobalUnicastAddress(const SubnetAddressV6&);
+
+        [[nodiscard]] std::vector<SubnetAddressV6> getGlobalUnicastAddresses() const;
+
+        [[nodiscard]] IPv6Address getLinkLocalAddress() const;
+
+        [[nodiscard]] IPv6Address getIPv6DefaultGateway() const;
+        [[nodiscard]] IPv4Address getIPv4DefaultGateway() const;
+
         [[nodiscard]] unsigned long long getMaxSpeed() const;
 
         [[nodiscard]] unsigned long long getSpeed() const;
@@ -66,7 +88,7 @@ class EthernetInterface {
 
         [[nodiscard]] bool getState() const;
 
-        [[nodiscard]] SubnetAddress getAddress() const;
+        [[nodiscard]] SubnetAddressV4 getIPv4Address() const;
 
         [[nodiscard]] bool isUnnumbered() const;
 

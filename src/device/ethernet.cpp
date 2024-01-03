@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <iostream>
 
-// "Nu esti conectat la eternet, ai restanta puisor"
 bool EthernetInterface::receiveData(const DataLinkLayer& data) {
     if (!isOn)
         return false;
@@ -13,7 +12,11 @@ bool EthernetInterface::receiveData(const DataLinkLayer& data) {
 }
 
 EthernetInterface::EthernetInterface(Device& _device, unsigned long long maxSpeed, bool isUnnumbered):
-device(_device), macAddress(publicMACCounter += 1), burnAddress(macAddress), unnumbered(isUnnumbered), 
+device(_device),
+macAddress((publicMACCounter += 1).getOctets()), 
+linkLocalAddress(macAddress),
+burnAddress(macAddress), 
+unnumbered(isUnnumbered), 
 speed(maxSpeed), maxSpeed(maxSpeed), bandwidth(maxSpeed) {
 }
 
@@ -31,7 +34,7 @@ bool EthernetInterface::connect(EthernetInterface* other) {
     return true;
 }
 
-bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
+bool EthernetInterface::setIpAddress(const SubnetAddressV4& add) {
     if (!device.getState())
         return false;
 
@@ -45,7 +48,7 @@ bool EthernetInterface::setIpAddress(const SubnetAddress& add) {
     if (unnumbered)
         throw std::invalid_argument("Unnumbered interface cannot be assigned an IP address.");
 
-    address = add;
+    addressV4 = add;
     return true;
 }
 
@@ -111,8 +114,8 @@ bool EthernetInterface::getState() const {
     return isOn;
 }
 
-SubnetAddress EthernetInterface::getAddress() const {
-    return address;
+SubnetAddressV4 EthernetInterface::getIPv4Address() const {
+    return addressV4;
 }
 
 bool EthernetInterface::isUnnumbered() const {
@@ -128,12 +131,65 @@ EthernetInterface* EthernetInterface::copy(Device& dev) const {
     ret->speed = speed;
     ret->bandwidth = bandwidth;
     ret->isOn = isOn;
+    ret->defaultGatewayV4 = defaultGatewayV4;
+    ret->defaultGatewayV6 = defaultGatewayV6;
     return ret;
+}
+
+bool EthernetInterface::setDefaultGateway(const IPv4Address& addr) {
+    defaultGatewayV4 = addr;
+    return true;
+}
+
+bool EthernetInterface::setDefaultGateway(const IPv6Address& addr) {
+    defaultGatewayV6 = addr;
+    return true;
+}
+
+bool EthernetInterface::addGlobalUnicastAddress(const SubnetAddressV6& addr) {
+    globalUnicastAddresses.push_back(addr);
+    return true;
+}
+
+bool EthernetInterface::removeGlobalUnicastAddress(const SubnetAddressV6& addr) {
+    globalUnicastAddresses.erase(std::remove(
+        globalUnicastAddresses.begin(),
+        globalUnicastAddresses.end(),
+        addr
+    ), globalUnicastAddresses.end());
+
+    return true;
+}
+
+std::vector<SubnetAddressV6> EthernetInterface::getGlobalUnicastAddresses() const {
+    return globalUnicastAddresses;
+}
+
+IPv6Address EthernetInterface::getLinkLocalAddress() const {
+    return linkLocalAddress;
+}
+
+IPv6Address EthernetInterface::getIPv6DefaultGateway() const {
+    return defaultGatewayV6;
+}
+
+IPv4Address EthernetInterface::getIPv4DefaultGateway() const {
+    return defaultGatewayV4;
 }
 
 std::ostream& operator<<(std::ostream& os, const EthernetInterface& ip) {
     os << "mac-address " << ip.macAddress << "\r\n";
-    os << "ip address " << ((IPv4Address)ip.address) << " " << ip.address.getMaskDotNotation() << "\r\n";
+    if (ip.addressV4 != IPv4Address("127.0.0.1"))
+        os << "ip address " << ((IPv4Address)ip.addressV4) << " " << ip.addressV4.getMaskDotNotation() << "\r\n";
+    else
+        os << "no ip address\r\n";
+
+    for (auto gua : ip.globalUnicastAddresses) {
+        os << "ipv6 address " << gua << "\r\n";
+    }
+    os << "ipv6 address " << ip.linkLocalAddress << " link-local\r\n";
+    os << "ip default-gateway " << ip.defaultGatewayV4 << "\r\n";
+    os << "ipv6 default-gateway " << ip.defaultGatewayV6 << "\r\n";
     os << "speed " << std::to_string(ip.speed) << "\r\n";
     os << "bandwidth "<< std::to_string(ip.bandwidth) << "\r\n";
     os << (ip.isOn ? "no shutdown" : "shutdown") << "\r\n";

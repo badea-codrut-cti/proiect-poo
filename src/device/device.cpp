@@ -4,16 +4,32 @@
 #include "../date/osi/osiexcept.h"
 #include <stdexcept>
 #include <iostream>
+#include <typeinfo>
 
 Device::Device(uint8_t interfaceCount, bool unnumbered, std::string hostname): 
 adapter(*this, interfaceCount, unnumbered), hostname(std::move(hostname)) {
 
 }
 
-MACAddress Device::getArpEntryOrBroadcast(const IPv4Address& ip) {
+MACAddress Device::getArpEntryOrBroadcast(const IPv4Address& ip) const {
     auto it = arpCache.find(ip);
     if (it == arpCache.end())
         return MACAddress{MACAddress::broadcastAddress};
+    return it->second;
+}
+
+MACAddress Device::getNDPEntryOrMulticast(const IPv6Address& ip) const {
+    auto it = ndCache.find(ip);
+    if (it == ndCache.end()) {
+        std::array<uint8_t, MACADDRESS_SIZE> ret{};
+        ret[0] = 0x33;
+        ret[1] = 0x33;
+
+        for (size_t j = MACADDRESS_SIZE-1; j >= 2; j--) 
+            ret[j] = ip.getOctets()[j + (IPV6_SIZE - MACADDRESS_SIZE)];
+        
+        return MACAddress(ret);
+    }
     return it->second;
 }
 
@@ -26,22 +42,68 @@ void Device::setHostname(const std::string& str) {
 }
 
 bool Device::sendARPRequest(const IPv4Address& target, bool forced) {
-    for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
-        if (!adapter[i].getAddress().isInSameSubnet(target))
+    if (!adapter.hasInterfaceInSubnet(target))
+        return false;
+
+    if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
+        return true;
+
+    size_t fIndex = adapter.findInSubnet(target);
+
+    ARPIPv4 pl(ARPData::REQUEST, adapter[fIndex].getMacAddress(), 
+    MACAddress("00:00:00:00:00:01"), adapter[fIndex].getIPv4Address(), target);
+    DataLinkLayer l2(adapter[fIndex].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
+    NetworkLayerV4 l3(l2, adapter[fIndex].getIPv4Address(), target);
+    return adapter[fIndex].sendData(l3);
+}
+
+bool Device::sendNDPRequest(const IPv6Address& target, bool forced) {
+    if (!adapter.hasInterfaceInSubnet(target))
+        return false;
+
+    auto it = ndCache.find(target);
+    if (it != ndCache.end() && !forced)
+        return true;
+
+    std::array<uint8_t, MACADDRESS_SIZE> ret{};
+    ret[0] = 0x33;
+    ret[1] = 0x33;
+
+    for (size_t j = MACADDRESS_SIZE-1; j >= 2; j--) 
+        ret[j] = target.getOctets()[j + (IPV6_SIZE - MACADDRESS_SIZE)];
+        
+    size_t fIndex = adapter.findInSubnet(target);
+
+    for (auto& gua : adapter[fIndex].getGlobalUnicastAddresses()) {
+        if (!gua.isInSameSubnet(target))
             continue;
 
-        if (getArpEntryOrBroadcast(target) != MACAddress{MACAddress::broadcastAddress} && !forced) 
-            return true;
-        
-        ARPPayload pl = ARPParser::createARPRequest(adapter[i].getMacAddress(), 
-        adapter[i].getAddress(), target);
-        DataLinkLayer l2(adapter[i].getMacAddress(), MACAddress{MACAddress::broadcastAddress}, pl, DataLinkLayer::ARP);
-        NetworkLayer l3(l2, adapter[i].getAddress(), target);
-        return adapter[i].sendData(l3);
+        NDPPayload pl(NDPPayload::NEIGHBOR_SOLICITATION, 0, target);
+        DataLinkLayer l2(adapter[fIndex].getMacAddress(), MACAddress(ret), pl, DataLinkLayer::IPV6);
+        NetworkLayerV6 l3(l2, gua, target);
+        return adapter[fIndex].sendData(l3);
     }
 
-    //throw std::invalid_argument("Cannot find interface with IP in the same subnet as ARP destination.");
     return false;
+}
+
+bool Device::sendICMPRequest(const IPv4Address& dest) {
+    ICMPPayload pl(ICMPPayload::ECHO_REQUEST, 0);
+
+    bool hitRouter = !adapter[0].getIPv4Address().isInSameSubnet(dest);
+    IPv4Address defaultGatewayV4 = adapter[0].getIPv4DefaultGateway();
+
+    if (hitRouter) 
+        sendARPRequest(defaultGatewayV4, false);
+    else 
+        sendARPRequest(dest, false);
+
+    DataLinkLayer l2(adapter[0].getMacAddress(),
+    hitRouter ? getArpEntryOrBroadcast(defaultGatewayV4) : getArpEntryOrBroadcast(dest), 
+    pl, DataLinkLayer::IPV4);
+
+    NetworkLayerV4 l3(l2, adapter[0].getIPv4Address(), dest, DEFAULT_TTL, NetworkLayerV4::ICMP);
+    return adapter[0].sendData(l3);
 }
 
 void Device::turnOn() {
@@ -62,9 +124,12 @@ bool Device::interfaceCallback([[maybe_unused]]const DataLinkLayer& _data, [[may
 }
 
 bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) {
+    if (data.getL2Type() != DataLinkLayer::IPV4)
+        return false;
+
     try {
-        auto& packet = dynamic_cast<const NetworkLayer&>(data);
-        if (packet.getL3Protocol() != NetworkLayer::ICMP)
+        auto& packet = dynamic_cast<const NetworkLayerV4&>(data);
+        if (packet.getL3Protocol() != NetworkLayerV4::ICMP)
             return false;
 
         if (!adapter.hasInterface(packet.getIPDestination()))
@@ -78,7 +143,7 @@ bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) 
 
             return handlePingRequest(packet, mac);
         } catch(const std::bad_cast&) {
-            throw InvalidPayloadException(NetworkLayer::ICMP);
+            throw InvalidPayloadException(NetworkLayerV4::ICMP);
         }
     } catch(const std::bad_cast&) {
         // Why would we be passed l2 here?
@@ -86,34 +151,37 @@ bool Device::checkPingRequest(const DataLinkLayer& data, const MACAddress& mac) 
     }
 }
 
-bool Device::handlePingRequest(const NetworkLayer& packet, const MACAddress& mac) {
+bool Device::handlePingRequest(const NetworkLayerV4& packet, const MACAddress& mac) {
     ICMPPayload pl(ICMPPayload::ECHO_REPLY, 0);
     DataLinkLayer l2(packet.getMACDestination(), packet.getMACSource(), pl, DataLinkLayer::IPV4);
-    NetworkLayer l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayer::ICMP);
+    NetworkLayerV4 l3(l2, packet.getIPDestination(), packet.getIPSource(), DEFAULT_TTL, NetworkLayerV4::ICMP);
     adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
     return true;
 }
 
 bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) {
+    if (data.getL2Type() != DataLinkLayer::ARP)
+        return false;
+    
     try {
-        auto payload = dynamic_cast<const ARPPayload*>(data.getPayload());
+        auto payload = dynamic_cast<const ARPIPv4*>(data.getPayload());
 
-        if (payload->getHardwareType() != ARPPayload::ETHERNET || payload->getProtocolType() != ARPPayload::IPV4)
-            return false;
+        bool isItForMe = adapter.hasInterface(payload->getDestinationIPv4Address());
 
-        auto [hwSrc, hwDest, protoSrc, protoDest] = ARPParser::parseARPPayload(*payload);
+        if (payload->getOperation() == ARPData::REPLY) {
+            arpCache.insert(std::make_pair(
+                payload->getSourceIPv4Address(), 
+                payload->getSourceMacAddress()
+            ));
 
-        bool isItForMe = adapter.hasInterface(protoDest);
-
-        if (payload->getOperation() == ARPPayload::REPLY) {
-            arpCache.insert(std::make_pair(protoSrc, hwSrc));
             if (isItForMe)
             return isItForMe;
         } else if (isItForMe) {
-            MACAddress destMAC = adapter[adapter.getIntefaceIndex(IPv4Address{protoDest})].getMacAddress();
-            ARPPayload l2pl = ARPParser::createARPReply(destMAC, hwSrc, protoDest, protoSrc);
-            DataLinkLayer l2(destMAC, hwSrc, l2pl, DataLinkLayer::ARP);
-            NetworkLayer l3(l2, protoDest, protoSrc);
+            MACAddress destMAC = adapter[adapter.getIntefaceIndex(payload->getDestinationIPv4Address())].getMacAddress();
+            ARPIPv4 l2pl(ARPData::REPLY, destMAC, payload->getSourceMacAddress(), 
+            payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
+            DataLinkLayer l2(destMAC, payload->getSourceMacAddress(), l2pl, DataLinkLayer::ARP);
+            NetworkLayerV4 l3(l2, payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());
             adapter[adapter.getIntefaceIndex(mac)].sendData(l3);
             return true;
         }
@@ -124,6 +192,70 @@ bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) 
     return false;
 }
 
+bool Device::handleNDPRequest(const DataLinkLayer& data, const MACAddress&) {
+    if (data.getL2Type() != DataLinkLayer::IPV6)
+        return false;
+
+    uint8_t fOct = data.getMACDestination().getOctets()[0],
+        sOct = data.getMACDestination().getOctets()[1];
+
+    if (fOct == 0x33 && sOct == 0x33) {
+        // Hopefully a neighbor solicitation
+
+        for (size_t i = 0; i < adapter.interfaceCount(); i++) {
+            for (auto& addr : adapter[i].getGlobalUnicastAddresses()) {
+                bool ok = true;
+                for (size_t j = MACADDRESS_SIZE-1; j >= 2 && ok; j--) 
+                    if (addr.getOctets()[j + (IPV6_SIZE - MACADDRESS_SIZE)] != 
+                        data.getMACDestination().getOctets()[j])
+                        ok = false;
+                    
+                if (!ok)
+                    continue;
+
+                // It most likely is
+
+                try {
+                    auto ndpPayload = dynamic_cast<const NDPPayload*>(data.getPayload());
+                    
+                    if (ndpPayload->getType() != NDPPayload::NEIGHBOR_SOLICITATION) 
+                        return false;
+                    
+                    auto l3data = dynamic_cast<const NetworkLayerV6&>(data);
+
+                    NDPPayload response(NDPPayload::NEIGHBOR_ADVERTISEMENT, 0, addr);
+                    DataLinkLayer l2(adapter[i].getMacAddress(), l3data.getMACSource(),
+                     response, DataLinkLayer::IPV6);
+                    NetworkLayerV6 l3(l2, addr, l3data.getIPSource(), DEFAULT_HOP_LIMIT, NetworkLayerV6::ICMPv6);
+                    adapter[i].sendData(l3);
+
+                    return true;
+                } catch(const std::bad_cast&) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    try {
+        auto ndpPayload = dynamic_cast<const NDPPayload*>(data.getPayload());
+
+        if (ndpPayload->getType() == NDPPayload::NEIGHBOR_ADVERTISEMENT) {
+            ndCache.insert(
+                std::make_pair(
+                    ndpPayload->getTargetAddress(), data.getMACSource()
+                )
+            );
+            return true;
+        }
+
+    } catch (const std::bad_cast&) {
+        return false;
+    }
+
+    return false;
+}
+
 bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface) {
     if (!isOn)
         return false;
@@ -131,20 +263,21 @@ bool Device::receiveData(const DataLinkLayer& data, EthernetInterface& interface
     if (!adapter.hasInterface(interface.getMacAddress()))
         throw std::invalid_argument("Interface does not belong in the network adapter.");
 
-    if (data.getL2Type() == DataLinkLayer::ARP && handleARPRequest(data, interface.getMacAddress())) { 
+    if (handleARPRequest(data, interface.getMacAddress())) 
         return true;
-    }
 
-    if (data.getL2Type() == DataLinkLayer::IPV4 && checkPingRequest(data, interface.getMacAddress())) {
+    if (checkPingRequest(data, interface.getMacAddress())) 
         return true;
-    }
+
+    if (handleNDPRequest(data, interface.getMacAddress()))
+        return true;
 
     for (const auto& listener : listeners) {
         if (listener(data, interface.getMacAddress()))
             return true;
     }
 
-    int fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
+    size_t fIndex = adapter.getIntefaceIndex(interface.getMacAddress());
     
     return interfaceCallback(data, fIndex);
 }
@@ -163,22 +296,26 @@ const std::string& Device::getHostname() const {
 
 Device::Device(const Device& other):
 isOn(other.isOn), 
-adapter(*this, other.adapter.interfaceCount(), other.adapter[0].isUnnumbered()),
+adapter(*this, 1, false),
 hostname(other.hostname) {
-    for (uint8_t i = 0; i < adapter.interfaceCount(); i++) {
-        adapter[i].setSpeed(other.adapter[i].getSpeed());
-        if (!other.adapter[i].getState())
-            adapter[i].turnOff();
-    }
+    adapter.copy(*this, other.adapter);
 }
 
 Device* Device::clone() const {
     return new Device(*this);
 }
 
-unsigned long long Device::registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)> &func) {
+size_t Device::registerFuncListener(const std::function<bool(const DataLinkLayer&, const MACAddress&)> &func) {
     listeners.push_back(func);
     return listeners.size()-1;
+}
+
+bool Device::removeFuncListener(size_t index) {
+    if (index >= listeners.size())
+        throw std::out_of_range("Index out of listeners range.");
+
+    listeners.erase(listeners.begin() + index);
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& os, const Device& device) {

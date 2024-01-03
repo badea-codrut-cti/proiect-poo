@@ -1,5 +1,8 @@
 #include "../device.h"
 
+#ifndef L2SWITCH_H
+#define L2SWITCH_H
+
 const uint8_t SWITCH_INT_COUNT = 26;
 
 const std::string DEFAULT_SWITCH_HOSTNAME = "Switch";
@@ -16,3 +19,5 @@ class L2Switch: public Device {
 
         void turnOff() override;
 };
+
+#endif

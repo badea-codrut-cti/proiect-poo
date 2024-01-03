@@ -21,7 +21,6 @@
         }
     ];
 
-    console.log(icons);
 </script>
 
 <div class="window-bg">
