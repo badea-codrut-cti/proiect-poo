@@ -213,7 +213,7 @@ json Workspace::handleDeviceAction(uint64_t index, json data) {
     if (action == "ping") {
         size_t callbackIndex;
 
-        auto callbackPingReply = [&retObj, &callbackIndex, dev](const DataLinkLayer& l2, const MACAddress& mac) {
+        auto callbackPingReply = [&retObj, &callbackIndex, dev](const DataLinkLayer& l2, const MACAddress&) {
             if (l2.getL2Type() != DataLinkLayer::IPV4)
                 return false;
 
