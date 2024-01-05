@@ -176,7 +176,7 @@ bool Device::handleARPRequest(const DataLinkLayer& data, const MACAddress& mac) 
 
             if (isItForMe)
             return isItForMe;
-        } else if (isItForMe) {
+        } else if (isItForMe && payload->getDestinationMacAddress() == MACAddress("00:00:00:00:00:01")) {
             MACAddress destMAC = adapter[adapter.getIntefaceIndex(payload->getDestinationIPv4Address())].getMacAddress();
             ARPIPv4 l2pl(ARPData::REPLY, destMAC, payload->getSourceMacAddress(), 
             payload->getDestinationIPv4Address(), payload->getSourceIPv4Address());

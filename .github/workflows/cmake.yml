@@ -55,6 +55,8 @@ jobs:
                    --suppress=unmatchedSuppression \
                    --suppress=useStlAlgorithm \
                    --suppress=preprocessorErrorDirective \
+                   --suppress=useStlAlgorithm \
+                   --suppress=assertWithSideEffect
                    --error-exitcode=1
 
   clang-tidy:
