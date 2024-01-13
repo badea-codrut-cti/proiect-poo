@@ -5,30 +5,26 @@
     export let interfaces: EthernetInterface[];
 
     let parsedInterfaces: {name: string, index: number}[] = [];
-    $: {
-        let maxIndex = 0;
+    let maxIndex = 0;
 
-        parsedInterfaces = interfaces.sort((a,b) => a.maxSpeed - b.maxSpeed).map((port, index) => {
-            let label = "";
-            switch (port.maxSpeed) {
-                case 1000: label = "Gigabit"; break;
-                case 100: label = "Fast"; break;
-            }
+    parsedInterfaces = interfaces.sort((a,b) => a.maxSpeed - b.maxSpeed).map((port, index) => {
+        let label = "";
+        switch (port.maxSpeed) {
+            case 1000: label = "Gigabit"; break;
+            case 100: label = "Fast"; break;
+        }
 
-            if (index != 0 && port.maxSpeed != interfaces[index-1].maxSpeed) 
-                maxIndex = index;
+        if (index != 0 && port.maxSpeed != interfaces[index-1].maxSpeed) 
+            maxIndex = index;
 
-            label += `Ethernet${index-maxIndex}/0`;
-            return {
-                name: label,
-                index: interfaces.indexOf(port)
-            }
-        });
+        label += `Ethernet${index-maxIndex}/0`;
+        return {
+            name: label,
+            index: interfaces.indexOf(port)
+        }
+    });
 
-        activeIndex.prop = 0;
-    }
-
-    let ipAddr: string, subnetMask: string;
+    let ipAddr: string, subnetMask: string, defaultGateway: string;
 
     let activeIndex = {
         inProp: 0,
@@ -43,6 +39,8 @@
             this.inProp = val;
         }
     }
+
+    activeIndex.prop = 0;
 
     function handleSubnetMaskChange(val: string) {
         window.wChangeDeviceSettings({
@@ -70,6 +68,19 @@
             }
         });
     }
+
+    function handleDefaultGatewayChange(val: string) {
+        if (val.split(".").length != 4) 
+            return;
+
+            window.wChangeDeviceSettings({
+            editMode: "interface",
+            interfaceIndex: activeIndex.prop,
+            ip: {
+                defaultGateway: val
+            }
+        });
+    }
 </script>
 
 <div class="w-64">
@@ -90,8 +101,7 @@
         <CallbackTextarea label={"Subnet Mask"} bind:text={subnetMask} callback={handleSubnetMaskChange}/>
     </div>
     <div>
-        <div class="inline-block w-32">Default Gateway</div>
-        <textarea class="inline-block resize-none w-32 h-6 text-xs"></textarea>
+        <CallbackTextarea label={"Default Gateway"} bind:text={defaultGateway} callback={handleDefaultGatewayChange}/>
     </div>
     <div>
         <div class="inline-block w-32">DNS Server</div>

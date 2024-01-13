@@ -12,7 +12,12 @@ type devSettingMode = {
         subnetMask?: {
             slashNotation?: number,
             dotNotation?: string
-        }
+        },
+        defaultGateway?: string
+    },
+    ipv6?: {
+        linkLocalAddress?: string
+        defaultGateway?: string
     },
     isOn?: boolean,
     speed?: number,

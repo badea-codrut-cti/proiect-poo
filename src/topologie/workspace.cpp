@@ -120,6 +120,15 @@ bool handleIPSettings(EthernetInterface& intf, json data) {
             }
         }
     }
+    
+    if (!data["defaultGateway"].empty()) {
+        try {
+            IPv4Address dfGateway(data["defaultGateway"].get<std::string>());
+            intf.setDefaultGateway(dfGateway);
+        } catch (const std::invalid_argument&) {
+            throw UIParameterException("defaultGateway");
+        }
+    }
 
     return true;
 }
